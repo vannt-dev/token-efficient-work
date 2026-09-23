@@ -55,6 +55,15 @@ preserved, never overwritten). Review the diff, then commit — anyone
 who clones the project afterward gets the rule automatically, no
 install step for them.
 
+## Does this actually save tokens?
+
+A real paired Codex CLI run (with vs. without the skill, same task) is
+in [EVIDENCE.md](EVIDENCE.md): 2 tool calls vs. 4, ~30% fewer input
+tokens — the no-skill run read whole files it had already located and
+added an unrequested re-verification pass, exactly what the skill's
+rules target. Single trial, not a statistical study; see the file for
+caveats.
+
 ## Updating the rule
 
 Edit `skills/token-efficient-work/SKILL.md` (the source of truth) and,
