@@ -5,10 +5,13 @@
 ![Compatible with](https://img.shields.io/badge/compatible-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20CLI%20%7C%20Gemini%20CLI%20%7C%20Cursor%20%7C%20Aider-blue)
 
 A skill + global instruction hooks that stop coding agents (Claude Code,
-Codex, Copilot CLI, Gemini CLI) from burning tokens on redundant work:
-re-reading a file after a successful edit, reading a whole file for a
-two-line change, adding unrequested "just to be safe" checks, or writing
-over-long explanations.
+Codex, Copilot CLI, Gemini CLI, Cursor, Aider) from burning tokens on
+redundant work: re-reading a file after a successful edit, reading a
+whole file for a two-line change, adding unrequested "just to be safe"
+checks, or writing over-long explanations.
+
+**[→ Landing page](https://vannt-dev.github.io/token-efficient-work/)**
+— the pitch, a real before/after transcript, and the install command.
 
 ## What's here
 
@@ -29,6 +32,7 @@ over-long explanations.
 - `.github/workflows/test-install.yml` — CI: runs the project installer
   twice (bash on Linux, PowerShell on Windows) on every push/PR and
   fails if a file is missing or a hook gets duplicated on re-run.
+- `docs/index.html` — the landing page, served via GitHub Pages.
 
 ## Install for yourself (every project on this machine)
 
