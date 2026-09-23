@@ -1,7 +1,7 @@
 # token-efficient-work
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Compatible with](https://img.shields.io/badge/compatible-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20CLI%20%7C%20Gemini%20CLI-blue)
+![Compatible with](https://img.shields.io/badge/compatible-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20CLI%20%7C%20Gemini%20CLI%20%7C%20Cursor%20%7C%20Aider-blue)
 
 A skill + global instruction hooks that stop coding agents (Claude Code,
 Codex, Copilot CLI, Gemini CLI) from burning tokens on redundant work:
@@ -45,12 +45,15 @@ curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/mast
 ```
 
 This writes `.claude/skills/token-efficient-work/`,
-`.agents/skills/token-efficient-work/`, and prepends the 5-rule summary
+`.agents/skills/token-efficient-work/`, prepends the 5-rule summary
 into `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and
-`.github/copilot-instructions.md` (only the ones that make sense for
-your project; existing content in those files is preserved, not
-overwritten). Review the diff, then commit — anyone who clones the
-project afterward gets the rule automatically, no install step for them.
+`.github/copilot-instructions.md`, adds a Cursor rule at
+`.cursor/rules/token-efficient-work.mdc`, and sets up Aider's
+`CONVENTIONS.md` (wiring it into `.aider.conf.yml`'s `read:` list if
+that file doesn't already have one — existing content anywhere is
+preserved, never overwritten). Review the diff, then commit — anyone
+who clones the project afterward gets the rule automatically, no
+install step for them.
 
 ## Updating the rule
 

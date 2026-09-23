@@ -61,4 +61,29 @@ add_hook "$TARGET/CLAUDE.md"
 add_hook "$TARGET/GEMINI.md"
 add_hook "$TARGET/.github/copilot-instructions.md"
 
+# Cursor: project rule, must be .mdc with frontmatter or Cursor ignores it
+CURSOR_RULE="$TARGET/.cursor/rules/token-efficient-work.mdc"
+if [ -f "$CURSOR_RULE" ] && grep -q "$MARKER" "$CURSOR_RULE"; then
+  echo "hook already present, skipped -> $CURSOR_RULE"
+else
+  mkdir -p "$(dirname "$CURSOR_RULE")"
+  { printf -- '---\ndescription: Token-efficient work discipline\nalwaysApply: true\n---\n\n'; cat "$SRC_DIR/hooks/global-rule.snippet.md"; } > "$CURSOR_RULE"
+  echo "hook -> $CURSOR_RULE"
+fi
+
+# Aider: reads CONVENTIONS.md only if .aider.conf.yml's `read:` lists it
+add_hook "$TARGET/CONVENTIONS.md"
+AIDER_CONF="$TARGET/.aider.conf.yml"
+if [ -f "$AIDER_CONF" ] && grep -q "CONVENTIONS.md" "$AIDER_CONF"; then
+  echo "aider conf already references CONVENTIONS.md, skipped -> $AIDER_CONF"
+elif [ -f "$AIDER_CONF" ] && grep -q "^read:" "$AIDER_CONF"; then
+  echo "$AIDER_CONF already has a 'read:' key — add CONVENTIONS.md to it by hand (skipped to avoid a broken duplicate key)"
+elif [ -f "$AIDER_CONF" ]; then
+  printf '\nread:\n  - CONVENTIONS.md\n' >> "$AIDER_CONF"
+  echo "aider conf -> $AIDER_CONF (appended read: CONVENTIONS.md)"
+else
+  printf 'read:\n  - CONVENTIONS.md\n' > "$AIDER_CONF"
+  echo "aider conf -> $AIDER_CONF"
+fi
+
 echo "Done. Review the diff and commit these files so your team gets this automatically."
