@@ -16,7 +16,7 @@ TARGET="${1:-$(pwd)}"
 MARKER="Token-efficient work (global rule"
 
 TMP=""
-cleanup() { [ -n "$TMP" ] && rm -rf "$TMP"; }
+cleanup() { [ -n "$TMP" ] && rm -rf "$TMP"; return 0; }
 trap cleanup EXIT
 
 SELF="${BASH_SOURCE[0]:-}"
