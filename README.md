@@ -1,5 +1,8 @@
 # token-efficient-work
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Compatible with](https://img.shields.io/badge/compatible-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20CLI%20%7C%20Gemini%20CLI-blue)
+
 A skill + global instruction hooks that stop coding agents (Claude Code,
 Codex, Copilot CLI, Gemini CLI) from burning tokens on redundant work:
 re-reading a file after a successful edit, reading a whole file for a
