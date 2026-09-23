@@ -1,0 +1,74 @@
+name: test-install
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  bash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install twice and verify (idempotency + expected files)
+        run: |
+          set -e
+          TARGET="$RUNNER_TEMP/proj"
+          mkdir -p "$TARGET"
+          bash install-project.sh "$TARGET"
+          bash install-project.sh "$TARGET"
+
+          for f in ".claude/skills/token-efficient-work/SKILL.md" \
+                   ".agents/skills/token-efficient-work/SKILL.md" \
+                   "AGENTS.md" "CLAUDE.md" "GEMINI.md" \
+                   ".github/copilot-instructions.md" \
+                   ".cursor/rules/token-efficient-work.mdc" \
+                   "CONVENTIONS.md" ".aider.conf.yml"; do
+            test -f "$TARGET/$f" || { echo "MISSING: $f"; exit 1; }
+          done
+
+          for f in "AGENTS.md" "CLAUDE.md" "GEMINI.md" \
+                   ".github/copilot-instructions.md" \
+                   ".cursor/rules/token-efficient-work.mdc" "CONVENTIONS.md"; do
+            count=$(grep -c "Token-efficient work (global rule" "$TARGET/$f")
+            [ "$count" -eq 1 ] || { echo "DUPLICATED after re-run: $f (count=$count)"; exit 1; }
+          done
+
+          grep -q "CONVENTIONS.md" "$TARGET/.aider.conf.yml"
+          echo "OK: bash installer smoke test passed"
+
+  powershell:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install twice and verify (idempotency + expected files)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $Target = Join-Path $env:RUNNER_TEMP "proj"
+          New-Item -ItemType Directory -Force -Path $Target | Out-Null
+          .\install-project.ps1 -TargetDir $Target
+          .\install-project.ps1 -TargetDir $Target
+
+          $Files = @(
+            ".claude\skills\token-efficient-work\SKILL.md",
+            ".agents\skills\token-efficient-work\SKILL.md",
+            "AGENTS.md", "CLAUDE.md", "GEMINI.md",
+            ".github\copilot-instructions.md",
+            ".cursor\rules\token-efficient-work.mdc",
+            "CONVENTIONS.md", ".aider.conf.yml"
+          )
+          foreach ($f in $Files) {
+            $p = Join-Path $Target $f
+            if (-not (Test-Path $p)) { Write-Error "MISSING: $f"; exit 1 }
+          }
+
+          $HookFiles = @("AGENTS.md","CLAUDE.md","GEMINI.md",".github\copilot-instructions.md",".cursor\rules\token-efficient-work.mdc","CONVENTIONS.md")
+          foreach ($f in $HookFiles) {
+            $p = Join-Path $Target $f
+            $count = (Select-String -Path $p -Pattern "Token-efficient work \(global rule" -AllMatches).Matches.Count
+            if ($count -ne 1) { Write-Error "DUPLICATED after re-run: $f (count=$count)"; exit 1 }
+          }
+
+          Select-String -Path (Join-Path $Target ".aider.conf.yml") -Pattern "CONVENTIONS.md" -Quiet
+          Write-Host "OK: powershell installer smoke test passed"

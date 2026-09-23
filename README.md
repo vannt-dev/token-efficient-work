@@ -1,6 +1,7 @@
 # token-efficient-work
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![test-install](https://github.com/vannt-dev/token-efficient-work/actions/workflows/test-install.yml/badge.svg)](https://github.com/vannt-dev/token-efficient-work/actions/workflows/test-install.yml)
 ![Compatible with](https://img.shields.io/badge/compatible-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20CLI%20%7C%20Gemini%20CLI%20%7C%20Cursor%20%7C%20Aider-blue)
 
 A skill + global instruction hooks that stop coding agents (Claude Code,
@@ -20,9 +21,14 @@ over-long explanations.
   skills. Installed into each tool's global instructions file
   (`~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md`,
   `~/.copilot/copilot-instructions.md`).
-- `install.sh` — copies/updates both onto the current machine. Safe to
-  re-run; it skips a hook file if the marker is already there instead of
-  duplicating it.
+- `install.sh` / `install.ps1` — copies/updates both onto the current
+  machine (bash and PowerShell versions). Safe to re-run; skips a hook
+  file if the marker is already there instead of duplicating it.
+- `install-project.sh` / `install-project.ps1` — same idea, scoped to a
+  single project so it can be committed and shared with a team.
+- `.github/workflows/test-install.yml` — CI: runs the project installer
+  twice (bash on Linux, PowerShell on Windows) on every push/PR and
+  fails if a file is missing or a hook gets duplicated on re-run.
 
 ## Install for yourself (every project on this machine)
 
@@ -30,6 +36,14 @@ over-long explanations.
 git clone https://github.com/vannt-dev/token-efficient-work.git
 cd token-efficient-work
 bash install.sh
+```
+
+On native Windows without Git Bash/WSL, use `install.ps1` instead:
+
+```powershell
+git clone https://github.com/vannt-dev/token-efficient-work.git
+cd token-efficient-work
+.\install.ps1
 ```
 
 Writes into your user dotfiles (`~/.claude`, `~/.agents`, `~/.codex`,
@@ -44,7 +58,13 @@ No clone needed — run this from the project's root directory:
 curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/master/install-project.sh | bash
 ```
 
-This writes `.claude/skills/token-efficient-work/`,
+On native Windows without Git Bash/WSL, use PowerShell instead:
+
+```powershell
+iwr https://raw.githubusercontent.com/vannt-dev/token-efficient-work/master/install-project.ps1 -UseBasicParsing | iex
+```
+
+Either way, this writes `.claude/skills/token-efficient-work/`,
 `.agents/skills/token-efficient-work/`, prepends the 5-rule summary
 into `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and
 `.github/copilot-instructions.md`, adds a Cursor rule at
