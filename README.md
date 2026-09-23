@@ -21,13 +21,33 @@ over-long explanations.
   re-run; it skips a hook file if the marker is already there instead of
   duplicating it.
 
-## Install on a new machine
+## Install for yourself (every project on this machine)
 
 ```bash
-git clone <this-repo-url>
+git clone https://github.com/vannt-dev/token-efficient-work.git
 cd token-efficient-work
 bash install.sh
 ```
+
+Writes into your user dotfiles (`~/.claude`, `~/.agents`, `~/.codex`,
+`~/.gemini`, `~/.copilot`) — applies everywhere you use these tools,
+nothing to commit.
+
+## Install into a project (share it with your team)
+
+No clone needed — run this from the project's root directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/master/install-project.sh | bash
+```
+
+This writes `.claude/skills/token-efficient-work/`,
+`.agents/skills/token-efficient-work/`, and prepends the 5-rule summary
+into `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and
+`.github/copilot-instructions.md` (only the ones that make sense for
+your project; existing content in those files is preserved, not
+overwritten). Review the diff, then commit — anyone who clones the
+project afterward gets the rule automatically, no install step for them.
 
 ## Updating the rule
 
