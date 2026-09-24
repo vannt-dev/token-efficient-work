@@ -9,7 +9,7 @@ jobs:
   bash:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install twice and verify (idempotency + expected files)
         run: |
           set -e
@@ -40,7 +40,7 @@ jobs:
   powershell:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install twice and verify (idempotency + expected files)
         shell: pwsh
         run: |
