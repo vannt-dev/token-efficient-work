@@ -5,3 +5,4 @@ Before reading, re-checking, or explaining, apply these (full detail + rationale
 3. Verify proportionally to risk — name the specific risk before adding a check.
 4. Reuse facts already established this session instead of re-fetching them.
 5. Match output length to the question; don't restate diffs/tool output in prose.
+<!-- /token-efficient-work -->
