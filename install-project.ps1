@@ -6,15 +6,20 @@
 #   .\install-project.ps1 -TargetDir .
 #
 # Usage (no clone needed, straight from GitHub):
-#   iwr https://raw.githubusercontent.com/vannt-dev/token-efficient-work/master/install-project.ps1 -UseBasicParsing | iex
+#   iwr https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.2.0/install-project.ps1 -UseBasicParsing | iex
 #
-# Safe to re-run: skips a hook file if the marker is already present.
+# Safe to re-run: re-running updates an existing rule block in place and keeps
+# everything else in each file. Remote installs fetch files from the release tag
+# matching this script (override with $env:TEW_REF = "<tag-or-branch>").
 param(
     [string]$TargetDir = (Get-Location).Path
 )
 $ErrorActionPreference = "Stop"
-$RepoRaw = "https://raw.githubusercontent.com/vannt-dev/token-efficient-work/master"
+$TewVersion = "0.2.0"
+$Ref = if ($env:TEW_REF) { $env:TEW_REF } else { "v$TewVersion" }
+$RepoRaw = "https://raw.githubusercontent.com/vannt-dev/token-efficient-work/$Ref"
 $Marker = "Token-efficient work (global rule"
+$EndMarker = "<!-- /token-efficient-work -->"
 
 $LocalSkill = if ($PSScriptRoot) { Join-Path $PSScriptRoot "skills\token-efficient-work\SKILL.md" } else { $null }
 
@@ -34,21 +39,38 @@ function Install-Skill([string]$Target) {
     Write-Host "skill -> $Target\SKILL.md"
 }
 
+function Write-Utf8([string]$Path, [string]$Text) {
+    # No BOM and no extra trailing newline, so re-running leaves an up-to-date file byte-identical.
+    [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
+}
+
+# Insert the rule block, or replace an existing one in place so re-running upgrades it.
+# A block runs from the heading line to the end marker; installs from v0.1.0 have no end
+# marker, so their block ends at the first blank line (v0.1.0 always wrote one after it).
 function Add-Hook([string]$Target) {
     $ParentDir = Split-Path -Parent $Target
     if ($ParentDir -and -not (Test-Path $ParentDir)) { New-Item -ItemType Directory -Force -Path $ParentDir | Out-Null }
-    if ((Test-Path $Target) -and (Select-String -Path $Target -Pattern $Marker -SimpleMatch -Quiet)) {
-        Write-Host "hook already present, skipped -> $Target"
+    $Snippet = [System.IO.File]::ReadAllText((Join-Path $SrcDir "hooks\global-rule.snippet.md"))
+    if (-not (Test-Path $Target)) {
+        Write-Utf8 $Target $Snippet
+        Write-Host "hook -> $Target"
         return
     }
-    $Snippet = Get-Content (Join-Path $SrcDir "hooks\global-rule.snippet.md") -Raw
-    if (Test-Path $Target) {
-        $Existing = Get-Content $Target -Raw
-        Set-Content -Path $Target -Value ($Snippet + "`n" + $Existing) -Encoding utf8
-    } else {
-        Set-Content -Path $Target -Value $Snippet -Encoding utf8
+    $Existing = [System.IO.File]::ReadAllText($Target)
+    if (-not $Existing.Contains($Marker)) {
+        Write-Utf8 $Target ($Snippet + "`n" + $Existing)
+        Write-Host "hook -> $Target"
+        return
     }
-    Write-Host "hook -> $Target"
+    $Heading = "(?m)^[^\r\n]*" + [regex]::Escape($Marker) + "[^\r\n]*\r?\n"
+    $Pattern = if ($Existing.Contains($EndMarker)) { $Heading + "(?s:.*?)" + [regex]::Escape($EndMarker) + "[^\r\n]*(\r?\n)?" } else { $Heading + "(?:[^\r\n]+(\r?\n|$))*" }
+    $Updated = ([regex]$Pattern).Replace($Existing, [System.Text.RegularExpressions.MatchEvaluator] { param($Match) $Snippet }, 1)
+    if ($Updated -ceq $Existing) {
+        Write-Host "hook already up to date -> $Target"
+    } else {
+        Write-Utf8 $Target $Updated
+        Write-Host "hook updated -> $Target"
+    }
 }
 
 Install-Skill (Join-Path $TargetDir ".claude\skills\token-efficient-work")
@@ -59,17 +81,13 @@ Add-Hook (Join-Path $TargetDir "CLAUDE.md")
 Add-Hook (Join-Path $TargetDir "GEMINI.md")
 Add-Hook (Join-Path $TargetDir ".github\copilot-instructions.md")
 
-# Cursor: project rule, must be .mdc with frontmatter or Cursor ignores it
+# Cursor: project rule, must be .mdc with frontmatter or Cursor ignores it.
+# The file belongs to this tool, so it is always regenerated from the current snippet.
 $CursorRule = Join-Path $TargetDir ".cursor\rules\token-efficient-work.mdc"
-if ((Test-Path $CursorRule) -and (Select-String -Path $CursorRule -Pattern $Marker -SimpleMatch -Quiet)) {
-    Write-Host "hook already present, skipped -> $CursorRule"
-} else {
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $CursorRule) | Out-Null
-    $FrontMatter = "---`ndescription: Token-efficient work discipline`nalwaysApply: true`n---`n`n"
-    $Snippet = Get-Content (Join-Path $SrcDir "hooks\global-rule.snippet.md") -Raw
-    Set-Content -Path $CursorRule -Value ($FrontMatter + $Snippet) -Encoding utf8
-    Write-Host "hook -> $CursorRule"
-}
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $CursorRule) | Out-Null
+$FrontMatter = "---`ndescription: Token-efficient work discipline`nalwaysApply: true`n---`n`n"
+Write-Utf8 $CursorRule ($FrontMatter + [System.IO.File]::ReadAllText((Join-Path $SrcDir "hooks\global-rule.snippet.md")))
+Write-Host "hook -> $CursorRule"
 
 # Aider: reads CONVENTIONS.md only if .aider.conf.yml's `read:` lists it
 Add-Hook (Join-Path $TargetDir "CONVENTIONS.md")

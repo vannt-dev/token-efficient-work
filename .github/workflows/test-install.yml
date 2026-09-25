@@ -37,6 +37,28 @@ jobs:
           grep -q "CONVENTIONS.md" "$TARGET/.aider.conf.yml"
           echo "OK: bash installer smoke test passed"
 
+      - name: Upgrade a v0.1.0 block and a stale block in place
+        run: |
+          set -e
+          TARGET="$RUNNER_TEMP/upgrade"
+          mkdir -p "$TARGET"
+          # v0.1.0 wrote the snippet without the end marker, then a blank line, then the old content.
+          { grep -vF '<!-- /token-efficient-work -->' hooks/global-rule.snippet.md; printf '\nuser line\n\nuser para\n'; } > "$TARGET/AGENTS.md"
+          { cat hooks/global-rule.snippet.md; printf '\nkeep me\n'; } | sed 's/^3\. .*/3. STALE RULE/' > "$TARGET/CLAUDE.md"
+          bash install-project.sh "$TARGET"
+
+          for f in AGENTS.md CLAUDE.md; do
+            [ "$(grep -c 'Token-efficient work (global rule' "$TARGET/$f")" -eq 1 ] || { echo "DUPLICATED: $f"; exit 1; }
+            grep -qF '<!-- /token-efficient-work -->' "$TARGET/$f" || { echo "NOT UPGRADED: $f"; exit 1; }
+          done
+          ! grep -q STALE "$TARGET/CLAUDE.md" || { echo "STALE RULE KEPT"; exit 1; }
+          grep -qx 'user para' "$TARGET/AGENTS.md" && grep -qx 'keep me' "$TARGET/CLAUDE.md" || { echo "USER CONTENT LOST"; exit 1; }
+
+          cp -r "$TARGET" "$RUNNER_TEMP/before"
+          bash install-project.sh "$TARGET"
+          diff -r "$RUNNER_TEMP/before" "$TARGET" || { echo "RE-RUN CHANGED FILES"; exit 1; }
+          echo "OK: bash upgrade test passed"
+
   powershell:
     runs-on: windows-latest
     steps:
@@ -72,3 +94,32 @@ jobs:
 
           Select-String -Path (Join-Path $Target ".aider.conf.yml") -Pattern "CONVENTIONS.md" -Quiet
           Write-Host "OK: powershell installer smoke test passed"
+
+      - name: Upgrade a v0.1.0 block and a stale block in place
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $Target = Join-Path $env:RUNNER_TEMP "upgrade"
+          New-Item -ItemType Directory -Force -Path $Target | Out-Null
+          $End = "<!-- /token-efficient-work -->"
+          $Snippet = [IO.File]::ReadAllText((Resolve-Path "hooks\global-rule.snippet.md"))
+          # v0.1.0 wrote the snippet without the end marker (with a BOM, CRLF), then a blank line, then the old content.
+          $Legacy = ($Snippet.Replace("$End`n", "") -replace "`n", "`r`n") + "`r`nuser line`r`n`r`nuser para`r`n"
+          [IO.File]::WriteAllText("$Target\AGENTS.md", $Legacy, (New-Object System.Text.UTF8Encoding $true))
+          [IO.File]::WriteAllText("$Target\CLAUDE.md", (($Snippet -replace "(?m)^3\. .*$", "3. STALE RULE") + "`nkeep me`n"))
+          .\install-project.ps1 -TargetDir $Target
+
+          foreach ($f in "AGENTS.md", "CLAUDE.md") {
+            $t = [IO.File]::ReadAllText("$Target\$f")
+            if (([regex]::Matches($t, "Token-efficient work \(global rule")).Count -ne 1) { Write-Error "DUPLICATED: $f"; exit 1 }
+            if (-not $t.Contains($End)) { Write-Error "NOT UPGRADED: $f"; exit 1 }
+          }
+          $a = [IO.File]::ReadAllText("$Target\AGENTS.md"); $c = [IO.File]::ReadAllText("$Target\CLAUDE.md")
+          if ($c.Contains("STALE")) { Write-Error "STALE RULE KEPT"; exit 1 }
+          if (-not $a.Contains("user para") -or -not $c.Contains("keep me")) { Write-Error "USER CONTENT LOST"; exit 1 }
+
+          $Before = (Get-ChildItem -Recurse -File $Target | Get-FileHash).Hash -join ","
+          .\install-project.ps1 -TargetDir $Target
+          $After = (Get-ChildItem -Recurse -File $Target | Get-FileHash).Hash -join ","
+          if ($Before -ne $After) { Write-Error "RE-RUN CHANGED FILES"; exit 1 }
+          Write-Host "OK: powershell upgrade test passed"
