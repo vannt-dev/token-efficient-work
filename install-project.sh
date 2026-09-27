@@ -20,7 +20,10 @@ MARKER="Token-efficient work (global rule"
 END_MARKER="<!-- /token-efficient-work -->"
 
 TMP=""
-cleanup() { [ -n "$TMP" ] && rm -rf "$TMP"; return 0; }
+cleanup() {
+  [ -n "$TMP" ] && rm -rf "$TMP"
+  return 0
+}
 trap cleanup EXIT
 
 SELF="${BASH_SOURCE[0]:-}"
@@ -50,7 +53,7 @@ add_hook() {
     cp "$snippet" "$target"
     echo "hook -> $target"
   elif ! grep -qF "$MARKER" "$target"; then
-    cat "$snippet" <(echo) "$target" > "$target.tmp" && mv "$target.tmp" "$target"
+    cat "$snippet" <(echo) "$target" >"$target.tmp" && mv "$target.tmp" "$target"
     echo "hook -> $target"
   else
     awk -v BINMODE=3 -v marker="$MARKER" -v end="$END_MARKER" -v snip="$snippet" '
@@ -60,7 +63,7 @@ add_hook() {
       skipping && /^\r?$/ { skipping = 0 }
       skipping { next }
       { print }
-    ' "$target" > "$target.tmp"
+    ' "$target" >"$target.tmp"
     if cmp -s "$target.tmp" "$target"; then
       rm -f "$target.tmp"
       echo "hook already up to date -> $target"
@@ -85,7 +88,10 @@ add_hook "$TARGET/.github/copilot-instructions.md"
 # The file belongs to this tool, so it is always regenerated from the current snippet.
 CURSOR_RULE="$TARGET/.cursor/rules/token-efficient-work.mdc"
 mkdir -p "$(dirname "$CURSOR_RULE")"
-{ printf -- '---\ndescription: Token-efficient work discipline\nalwaysApply: true\n---\n\n'; cat "$SRC_DIR/hooks/global-rule.snippet.md"; } > "$CURSOR_RULE"
+{
+  printf -- '---\ndescription: Token-efficient work discipline\nalwaysApply: true\n---\n\n'
+  cat "$SRC_DIR/hooks/global-rule.snippet.md"
+} >"$CURSOR_RULE"
 echo "hook -> $CURSOR_RULE"
 
 # Aider: reads CONVENTIONS.md only if .aider.conf.yml's `read:` lists it
@@ -96,10 +102,10 @@ if [ -f "$AIDER_CONF" ] && grep -q "CONVENTIONS.md" "$AIDER_CONF"; then
 elif [ -f "$AIDER_CONF" ] && grep -q "^read:" "$AIDER_CONF"; then
   echo "$AIDER_CONF already has a 'read:' key — add CONVENTIONS.md to it by hand (skipped to avoid a broken duplicate key)"
 elif [ -f "$AIDER_CONF" ]; then
-  printf '\nread:\n  - CONVENTIONS.md\n' >> "$AIDER_CONF"
+  printf '\nread:\n  - CONVENTIONS.md\n' >>"$AIDER_CONF"
   echo "aider conf -> $AIDER_CONF (appended read: CONVENTIONS.md)"
 else
-  printf 'read:\n  - CONVENTIONS.md\n' > "$AIDER_CONF"
+  printf 'read:\n  - CONVENTIONS.md\n' >"$AIDER_CONF"
   echo "aider conf -> $AIDER_CONF"
 fi
 
