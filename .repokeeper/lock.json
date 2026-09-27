@@ -1,11 +1,11 @@
 {
   "lockVersion": 1,
-  "standard": "1.2.0",
+  "standard": "1.2.1",
   "entries": [
     {
       "id": "block:.gitattributes#editorconfig",
       "module": "editorconfig",
-      "hash": "23f639d92d34b61d14a737aded8b30d3de249a0f19b7ac32b9789bf3f7d32c4d",
+      "hash": "e70ac9143c0c20c9ccae58abde2993797ec8cf7885322b000654d798267c4a48",
       "target": {
         "kind": "block",
         "path": ".gitattributes",
@@ -108,7 +108,7 @@
     {
       "id": "file:CONTRIBUTING.md",
       "module": "health",
-      "hash": "b627c2624fc6d8b44f7181917d70a7a963896ccb4a932262562d0c30a8bd7827",
+      "hash": "033cc19ffeadd8e00d5b15f4da3c94dbbfb7da6ee1d968f4d85febb9e077674e",
       "target": {
         "kind": "file",
         "path": "CONTRIBUTING.md"

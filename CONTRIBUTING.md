@@ -6,11 +6,11 @@ Thanks for helping improve this project.
 
 ## Local setup
 
-Then run `npx --yes lefthook@2.1.14 install` once to enable the git hooks (they need Node.js 22 or newer).
+Run `npx --yes lefthook@2.1.14 install` once to enable the git hooks (they need Node.js 22 or newer).
 
 ## Workflow
 
-1. Create a branch from `main`.
+1. Create a branch from `master`.
 2. Write commit messages in [Conventional Commits](https://www.conventionalcommits.org/) form, for example `feat: add export button` or `fix(api): handle empty input`. The `commit-msg` hook checks them.
 3. Open a pull request. It is merged once the checks pass and it has been reviewed.
 
