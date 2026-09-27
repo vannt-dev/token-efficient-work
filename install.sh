@@ -23,7 +23,7 @@ add_hook() {
     cp "$snippet" "$target"
     echo "hook -> $target"
   elif ! grep -qF "$MARKER" "$target"; then
-    cat "$snippet" <(echo) "$target" > "$target.tmp" && mv "$target.tmp" "$target"
+    cat "$snippet" <(echo) "$target" >"$target.tmp" && mv "$target.tmp" "$target"
     echo "hook -> $target"
   else
     awk -v BINMODE=3 -v marker="$MARKER" -v end="$END_MARKER" -v snip="$snippet" '
@@ -33,7 +33,7 @@ add_hook() {
       skipping && /^\r?$/ { skipping = 0 }
       skipping { next }
       { print }
-    ' "$target" > "$target.tmp"
+    ' "$target" >"$target.tmp"
     if cmp -s "$target.tmp" "$target"; then
       rm -f "$target.tmp"
       echo "hook already up to date -> $target"

@@ -37,7 +37,7 @@ function Add-Hook([string]$Target) {
     }
     $Heading = "(?m)^[^\r\n]*" + [regex]::Escape($Marker) + "[^\r\n]*\r?\n"
     $Pattern = if ($Existing.Contains($EndMarker)) { $Heading + "(?s:.*?)" + [regex]::Escape($EndMarker) + "[^\r\n]*(\r?\n)?" } else { $Heading + "(?:[^\r\n]+(\r?\n|$))*" }
-    $Updated = ([regex]$Pattern).Replace($Existing, [System.Text.RegularExpressions.MatchEvaluator] { param($Match) $Snippet }, 1)
+    $Updated = ([regex]$Pattern).Replace($Existing, [System.Text.RegularExpressions.MatchEvaluator] { $Snippet }, 1)
     if ($Updated -ceq $Existing) {
         Write-Host "hook already up to date -> $Target"
     } else {

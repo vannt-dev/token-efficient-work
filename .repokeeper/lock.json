@@ -1,0 +1,265 @@
+{
+  "lockVersion": 1,
+  "standard": "1.2.0",
+  "entries": [
+    {
+      "id": "block:.gitattributes#editorconfig",
+      "module": "editorconfig",
+      "hash": "23f639d92d34b61d14a737aded8b30d3de249a0f19b7ac32b9789bf3f7d32c4d",
+      "target": {
+        "kind": "block",
+        "path": ".gitattributes",
+        "id": "editorconfig",
+        "comment": "hash"
+      }
+    },
+    {
+      "id": "block:.gitignore#gitignore",
+      "module": "gitignore",
+      "hash": "b3a970935f2d0be40300627c32f5aaf8a5fbd8120ce91e43648971ed0f3cd126",
+      "target": {
+        "kind": "block",
+        "path": ".gitignore",
+        "id": "gitignore",
+        "comment": "hash"
+      }
+    },
+    {
+      "id": "file:.editorconfig",
+      "module": "editorconfig",
+      "hash": "7d9ee1988ce3177a273a01b7547b3995fcbc7e5f00528f6f76784604738f70e0",
+      "target": {
+        "kind": "file",
+        "path": ".editorconfig"
+      }
+    },
+    {
+      "id": "file:.github/CODEOWNERS",
+      "module": "health",
+      "hash": "2ddf1434370f1f45e2838ea3ea7d3c3b8df64bba5ba0070c831c18ce7f415d3e",
+      "target": {
+        "kind": "file",
+        "path": ".github/CODEOWNERS"
+      }
+    },
+    {
+      "id": "file:.github/dependabot.yml",
+      "module": "deps",
+      "hash": "5ddb7cf72d56a37173924a75d71989a6330fb60ddfd78993d5bf7cb241c99417",
+      "target": {
+        "kind": "file",
+        "path": ".github/dependabot.yml"
+      }
+    },
+    {
+      "id": "file:.github/ISSUE_TEMPLATE/bug_report.yml",
+      "module": "health",
+      "hash": "7f4cc94f4d18852f420550145ff3da56394629c2842666108f819d2fd9558c3a",
+      "target": {
+        "kind": "file",
+        "path": ".github/ISSUE_TEMPLATE/bug_report.yml"
+      }
+    },
+    {
+      "id": "file:.github/ISSUE_TEMPLATE/config.yml",
+      "module": "health",
+      "hash": "22dbdef5038b4862564f919793eea591598e513d779c9a9678d1a1e03ed9d316",
+      "target": {
+        "kind": "file",
+        "path": ".github/ISSUE_TEMPLATE/config.yml"
+      }
+    },
+    {
+      "id": "file:.github/ISSUE_TEMPLATE/feature_request.yml",
+      "module": "health",
+      "hash": "2c05b6ad1418edbf502e416edd333b6a5d8271f3fd5b2a987476d6b06bc90d0c",
+      "target": {
+        "kind": "file",
+        "path": ".github/ISSUE_TEMPLATE/feature_request.yml"
+      }
+    },
+    {
+      "id": "file:.github/pull_request_template.md",
+      "module": "health",
+      "hash": "dd3abfcf0389ff99ef5dd98554b1fd1c57faa40341d845fdd88fe4b16910163a",
+      "target": {
+        "kind": "file",
+        "path": ".github/pull_request_template.md"
+      }
+    },
+    {
+      "id": "file:CODE_OF_CONDUCT.md",
+      "module": "health",
+      "hash": "36c037a9eeda8cdef69716f6c99fcd3432ea167d46ada5f7e5b756436d849d8c",
+      "target": {
+        "kind": "file",
+        "path": "CODE_OF_CONDUCT.md"
+      }
+    },
+    {
+      "id": "file:commitlint.config.mjs",
+      "module": "commits",
+      "hash": "567f9b80afefaac256745dd0aaf8e51a02d5e4e1cb00ea071de0c00f38f5b8bb",
+      "target": {
+        "kind": "file",
+        "path": "commitlint.config.mjs"
+      }
+    },
+    {
+      "id": "file:CONTRIBUTING.md",
+      "module": "health",
+      "hash": "b627c2624fc6d8b44f7181917d70a7a963896ccb4a932262562d0c30a8bd7827",
+      "target": {
+        "kind": "file",
+        "path": "CONTRIBUTING.md"
+      }
+    },
+    {
+      "id": "file:lefthook.yml",
+      "module": "hooks",
+      "hash": "a1443ae4236f5ae9111d73e4aac047effe039b68c4cc13642ee4afca2646cc52",
+      "target": {
+        "kind": "file",
+        "path": "lefthook.yml"
+      }
+    },
+    {
+      "id": "file:release-please-config.json",
+      "module": "release",
+      "hash": "c7a0dbf80e20b992b7956cf7ad18ebce269ec37100a93083abd685b74a580b76",
+      "target": {
+        "kind": "file",
+        "path": "release-please-config.json"
+      }
+    },
+    {
+      "id": "file:SECURITY.md",
+      "module": "health",
+      "hash": "c67da7d4b186a109e36ab8a2495ea684824236cbd13c20aee04a8343837bc1f6",
+      "target": {
+        "kind": "file",
+        "path": "SECURITY.md"
+      }
+    },
+    {
+      "id": "seed:.release-please-manifest.json",
+      "module": "release",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "target": {
+        "kind": "seed",
+        "path": ".release-please-manifest.json"
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/ci.yml#[\"jobs\",\"commits\"]",
+      "module": "ci",
+      "hash": "c8980e3360652641f615888ad5c8636f246d8446b7db051914ee9126c6aaac08",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/ci.yml",
+        "keyPath": [
+          "jobs",
+          "commits"
+        ]
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/ci.yml#[\"jobs\",\"script\"]",
+      "module": "ci",
+      "hash": "e4a11035e10ad23d0d09bf9fec19c56528e7769d0f56cbb63a298fbbd10c39c0",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/ci.yml",
+        "keyPath": [
+          "jobs",
+          "script"
+        ]
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/ci.yml#[\"name\"]",
+      "module": "ci",
+      "hash": "ef173e6ef1eadabebf697a84c0c819b54cd6176f87a2d15098eb6316e5d84b12",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/ci.yml",
+        "keyPath": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/ci.yml#[\"on\"]",
+      "module": "ci",
+      "hash": "c466ddd64f6256a5d5ae15b082bcbd3a8f3cd6e5359d5958cdeb0913268d219a",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/ci.yml",
+        "keyPath": [
+          "on"
+        ]
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/ci.yml#[\"permissions\"]",
+      "module": "ci",
+      "hash": "d8d6aceb1abc41990618a503082c3badcca8897feee0976f222af5b74e30bec2",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/ci.yml",
+        "keyPath": [
+          "permissions"
+        ]
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/release.yml#[\"jobs\",\"release\"]",
+      "module": "release",
+      "hash": "d9d3e2b53d26b4f213a4d65c92b89d9b403f4f4dd166fa0c2c23689cb32b503d",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/release.yml",
+        "keyPath": [
+          "jobs",
+          "release"
+        ]
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/release.yml#[\"name\"]",
+      "module": "release",
+      "hash": "847dbd914599c4e12e39663e80a07a220b686f10c6d24132ba1c964980541456",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/release.yml",
+        "keyPath": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/release.yml#[\"on\"]",
+      "module": "release",
+      "hash": "62451f8e5f435ba84b19b8519fa5faf7c32228bccd722309c9e7e9cfaa7d64d8",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/release.yml",
+        "keyPath": [
+          "on"
+        ]
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/release.yml#[\"permissions\"]",
+      "module": "release",
+      "hash": "d8d6aceb1abc41990618a503082c3badcca8897feee0976f222af5b74e30bec2",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/release.yml",
+        "keyPath": [
+          "permissions"
+        ]
+      }
+    }
+  ]
+}
