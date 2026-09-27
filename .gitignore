@@ -8,3 +8,8 @@ Thumbs.db
 
 # Tooling output that shouldn't end up in the repo
 .playwright-mcp/
+
+# repokeeper:start gitignore
+## repokeeper
+*.repokeeper-new
+# repokeeper:end gitignore

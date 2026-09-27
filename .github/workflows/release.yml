@@ -1,0 +1,18 @@
+# Managed by repokeeper (https://github.com/vannt-dev/repokeeper). Edits are reported by `repokeeper check`. Keys and jobs you add yourself are left alone.
+
+name: release
+on:
+  push:
+    branches:
+      - master
+permissions:
+  contents: read
+jobs:
+  release:
+    uses: vannt-dev/repokeeper/.github/workflows/release-please.yml@v0
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    secrets:
+      token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
