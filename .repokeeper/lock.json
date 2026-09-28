@@ -1,6 +1,6 @@
 {
   "lockVersion": 1,
-  "standard": "1.2.1",
+  "standard": "1.4.1",
   "entries": [
     {
       "id": "block:.gitattributes#editorconfig",
@@ -45,7 +45,7 @@
     {
       "id": "file:.github/dependabot.yml",
       "module": "deps",
-      "hash": "5ddb7cf72d56a37173924a75d71989a6330fb60ddfd78993d5bf7cb241c99417",
+      "hash": "498d8d7c755cb2a3d9fe4e909bdabdef74fdc714f0db7326c687d29f320798dc",
       "target": {
         "kind": "file",
         "path": ".github/dependabot.yml"
@@ -151,6 +151,18 @@
       }
     },
     {
+      "id": "yaml:.github/workflows/ci.yml#[\"concurrency\"]",
+      "module": "ci",
+      "hash": "1f382fb1b73ab99e2883b98aae10e56692a59ccaaa72d990ff8fdae435f46cd6",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/ci.yml",
+        "keyPath": [
+          "concurrency"
+        ]
+      }
+    },
+    {
       "id": "yaml:.github/workflows/ci.yml#[\"jobs\",\"commits\"]",
       "module": "ci",
       "hash": "c8980e3360652641f615888ad5c8636f246d8446b7db051914ee9126c6aaac08",
@@ -209,6 +221,19 @@
         "path": ".github/workflows/ci.yml",
         "keyPath": [
           "permissions"
+        ]
+      }
+    },
+    {
+      "id": "yaml:.github/workflows/release.yml#[\"jobs\",\"release-pr-ci\"]",
+      "module": "release",
+      "hash": "6947fbe0732aa7cd806b68053d40c62cdc538fe529a119a0f52a7725a1f38d7a",
+      "target": {
+        "kind": "yaml",
+        "path": ".github/workflows/release.yml",
+        "keyPath": [
+          "jobs",
+          "release-pr-ci"
         ]
       }
     },
