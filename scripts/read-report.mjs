@@ -169,7 +169,7 @@ function render(totals, options) {
   const row = (label, bucket, rule) =>
     `${label.padEnd(46)} ${String(bucket.count).padStart(6)}   about ${tokens(bucket.chars)} tokens${rule}`;
   const out = [
-    `token-efficient-work read report: ${totals.transcripts} transcripts, ${window}`,
+    `token-efficient-work read report: ${totals.transcripts} transcript${totals.transcripts === 1 ? '' : 's'}, ${window}`,
     '',
     `${'Read calls'.padEnd(46)} ${String(reads.total).padStart(6)}`,
     `${'  with a range'.padEnd(46)} ${String(reads.ranged).padStart(6)}`,

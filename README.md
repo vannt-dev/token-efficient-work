@@ -119,22 +119,24 @@ clone of this repo:
 node scripts/read-report.mjs --days 30
 ```
 
-```text
-Read calls                                       1710
-  with a range                                    429
-  whole-file                                     1281   75% of reads, about 1748.2K tokens
+What it prints, here for the one made-up session under
+`tests/fixtures/sample` (`--dir tests/fixtures/sample`):
 
-Whole-file reads over 400 lines                    45   about 391.8K tokens   (rule 1)
-  of which source code (the guard refuses)         26   about 192.1K tokens
-Reads right after a successful edit                37   about 24.4K tokens   (rule 2)
-Repeat whole-file reads of an unchanged file       33   about 27.3K tokens   (rule 4)
+```text
+Read calls                                          8
+  with a range                                      3
+  whole-file                                        5   63% of reads, about 16.3K tokens
+
+Whole-file reads over 400 lines                     3   about 14.8K tokens   (rule 1)
+  of which source code (the guard refuses)          2   about 10.6K tokens
+Reads right after a successful edit                 1   about 265 tokens   (rule 2)
+Repeat whole-file reads of an unchanged file        1   about 715 tokens   (rule 4)
 ```
 
-That is the author's machine, 74 transcripts over 30 days. Tokens are
-estimated at 4 characters each from what the tool returned, and the
-report cannot know what a ranged read would have cost instead, so read
-it as where the cost sits, not as a saving. `--project`, `--max-lines`
-and `--json` narrow or export it; `--help` lists them.
+Tokens are estimated at 4 characters each from what the tool returned,
+and the report cannot know what a ranged read would have cost instead,
+so read it as where the cost sits, not as a saving. `--project`,
+`--max-lines` and `--json` narrow or export it; `--help` lists them.
 
 If the source-code line is large, the opt-in
 [read guard](hooks/claude-code/README.md) turns rule 1 into a gate for
