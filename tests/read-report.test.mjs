@@ -98,6 +98,21 @@ test('the text report names the largest whole-file reads', () => {
   assert.match(text, /\/src\/old\.ts/);
 });
 
+// tests/fixtures/sample holds one made-up session: three whole-file reads over 400 lines (two of
+// them source code), one read right after an edit and one repeat read. The README shows its report.
+test('the README example is the report for the sample transcript', () => {
+  const sample = fileURLToPath(new URL('./fixtures/sample', import.meta.url));
+  const result = spawnSync(process.execPath, [script, '--dir', sample], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const lines = result.stdout.replace(/\r\n/g, '\n').split('\n');
+  assert.match(lines[0], /: 1 transcript,/);
+  const from = lines.findIndex((line) => line.startsWith('Read calls'));
+  const to = lines.findIndex((line) => line.startsWith('Repeat whole-file reads'));
+  const example = lines.slice(from, to + 1).join('\n');
+  const readme = readFileSync(fileURLToPath(new URL('../README.md', import.meta.url)), 'utf8');
+  assert.ok(readme.replace(/\r\n/g, '\n').includes(example), 'README example differs from the sample report');
+});
+
 test('an empty directory reports zero instead of failing', () => {
   const empty = mkdtempSync(join(tmpdir(), 'tew-empty-'));
   try {
