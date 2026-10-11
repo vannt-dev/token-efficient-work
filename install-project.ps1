@@ -6,7 +6,9 @@
 #   .\install-project.ps1 -TargetDir .
 #
 # Usage (no clone needed, straight from GitHub):
+# x-release-please-start-version
 #   iwr https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.2.0/install-project.ps1 -UseBasicParsing | iex
+# x-release-please-end
 #
 # Safe to re-run: re-running updates an existing rule block in place and keeps
 # everything else in each file. Remote installs fetch files from the release tag
@@ -15,7 +17,7 @@ param(
     [string]$TargetDir = (Get-Location).Path
 )
 $ErrorActionPreference = "Stop"
-$TewVersion = "0.2.0"
+$TewVersion = "0.2.0" # x-release-please-version
 $Ref = if ($env:TEW_REF) { $env:TEW_REF } else { "v$TewVersion" }
 $RepoRaw = "https://raw.githubusercontent.com/vannt-dev/token-efficient-work/$Ref"
 $Marker = "Token-efficient work (global rule"

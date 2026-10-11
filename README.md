@@ -68,6 +68,8 @@ nothing to commit.
 
 No clone needed — run this from the project's root directory:
 
+<!-- x-release-please-start-version -->
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.2.0/install-project.sh | bash
 ```
@@ -77,6 +79,8 @@ On native Windows without Git Bash/WSL, use PowerShell instead:
 ```powershell
 iwr https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.2.0/install-project.ps1 -UseBasicParsing | iex
 ```
+
+<!-- x-release-please-end -->
 
 Either way, this writes `.claude/skills/token-efficient-work/`,
 `.agents/skills/token-efficient-work/`, prepends the 5-rule summary
@@ -145,6 +149,10 @@ end marker), which the installers use to find and replace the block. Then
 re-run `install.sh` on each machine (or `git pull && bash install.sh`);
 existing rule blocks are updated in place.
 
-When releasing, bump the version (`TEW_VERSION` / `$TewVersion` in both
-project installers and the pinned URLs in this README and
-`docs/index.html`), then tag `v<version>` so the pinned URLs resolve.
+Releases are made by merging the release pull request that
+release-please opens. It bumps the version everywhere it is written:
+`TEW_VERSION` / `$TewVersion` in both project installers and the pinned
+URLs in this README and `docs/index.html` (the lines marked
+`x-release-please`, listed under `extra-files` in
+`release-please-config.json`), then tags `v<version>` so the pinned URLs
+resolve. A new place that names the version needs the same marker.
