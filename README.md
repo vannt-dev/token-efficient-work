@@ -71,13 +71,13 @@ No clone needed — run this from the project's root directory:
 <!-- x-release-please-start-version -->
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.2.0/install-project.sh | bash
+curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.3.0/install-project.sh | bash
 ```
 
 On native Windows without Git Bash/WSL, use PowerShell instead:
 
 ```powershell
-iwr https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.2.0/install-project.ps1 -UseBasicParsing | iex
+iwr https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.3.0/install-project.ps1 -UseBasicParsing | iex
 ```
 
 <!-- x-release-please-end -->
