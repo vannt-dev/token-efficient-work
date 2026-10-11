@@ -6,7 +6,7 @@ Thanks for helping improve this project.
 
 ## Local setup
 
-Run `npx --yes lefthook@2.1.14 install` once to enable the git hooks (they need Node.js 22 or newer).
+Run `npx --yes lefthook@2.2.1 install` once to enable the git hooks (they need Node.js 22 or newer).
 
 ## Workflow
 
