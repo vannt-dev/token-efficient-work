@@ -21,4 +21,4 @@ jobs:
         with:
           node-version: 22
       - name: Read guard and read report
-        run: node --test tests/
+        run: node --test "tests/*.test.mjs"
