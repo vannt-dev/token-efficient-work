@@ -35,6 +35,13 @@ checks, or writing over-long explanations.
   twice (bash on Linux, PowerShell on Windows) on every push/PR and
   fails if a file is missing, a hook gets duplicated on re-run, an old
   or stale rule block isn't upgraded, or a re-run changes any file.
+- `scripts/read-report.mjs` — measures your own Claude Code sessions:
+  how many reads were whole-file, how many only confirmed an edit, how
+  many repeated an earlier read. See
+  [Measure your own sessions](#measure-your-own-sessions).
+- `hooks/claude-code/guard-full-read.mjs` — an opt-in Claude Code hook
+  that refuses a whole-file read of a long source file. Not installed by
+  the scripts above; see [hooks/claude-code/README.md](hooks/claude-code/README.md).
 - `docs/index.html` — the landing page, served via GitHub Pages.
 
 ## Install for yourself (every project on this machine)
@@ -98,6 +105,36 @@ tokens — the no-skill run read whole files it had already located and
 added an unrequested re-verification pass, exactly what the skill's
 rules target. Single trial, not a statistical study; see the file for
 caveats.
+
+## Measure your own sessions
+
+Claude Code keeps a transcript of every session. With Node.js 18+ and a
+clone of this repo:
+
+```bash
+node scripts/read-report.mjs --days 30
+```
+
+```text
+Read calls                                       1710
+  with a range                                    429
+  whole-file                                     1281   75% of reads, about 1748.2K tokens
+
+Whole-file reads over 400 lines                    45   about 391.8K tokens   (rule 1)
+  of which source code (the guard refuses)         26   about 192.1K tokens
+Reads right after a successful edit                37   about 24.4K tokens   (rule 2)
+Repeat whole-file reads of an unchanged file       33   about 27.3K tokens   (rule 4)
+```
+
+That is the author's machine, 74 transcripts over 30 days. Tokens are
+estimated at 4 characters each from what the tool returned, and the
+report cannot know what a ranged read would have cost instead, so read
+it as where the cost sits, not as a saving. `--project`, `--max-lines`
+and `--json` narrow or export it; `--help` lists them.
+
+If the source-code line is large, the opt-in
+[read guard](hooks/claude-code/README.md) turns rule 1 into a gate for
+Claude Code.
 
 ## Updating the rule
 
