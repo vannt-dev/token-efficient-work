@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/vannt-dev/token-efficient-work/compare/v0.3.1...v0.3.2) (2026-10-13)
+
+
+### Documentation
+
+* give the landing page a document head, a viewport and a description ([#13](https://github.com/vannt-dev/token-efficient-work/issues/13)) ([1c322bf](https://github.com/vannt-dev/token-efficient-work/commit/1c322bf841eb9990dc37a0731ad7e49d2ea234ef))
+
 ## [0.3.1](https://github.com/vannt-dev/token-efficient-work/compare/v0.3.0...v0.3.1) (2026-10-12)
 
 
