@@ -20,6 +20,7 @@ modules:
       - "@vannt-dev"
 owned:
   - LICENSE
+  - release-please-config.json
 stack_options: {}
 github:
   default_branch: master
