@@ -385,16 +385,19 @@
       <div class="tabs" role="tablist" aria-label="Install command shell">
         <button class="tab mono" role="tab" aria-selected="true" data-shell="bash">bash</button>
         <button class="tab mono" role="tab" aria-selected="false" data-shell="ps">powershell</button>
+        <button class="tab mono" role="tab" aria-selected="false" data-shell="plugin">claude code plugin</button>
       </div>
       <div class="cmdrow">
         <!-- x-release-please-start-version -->
         <code class="mono" data-cmd-bash>curl -fsSL <span class="muted">https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.4.0/install-project.sh</span> | bash</code>
         <code class="mono" data-cmd-ps hidden>iwr <span class="muted">https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.4.0/install-project.ps1</span> -UseBasicParsing | iex</code>
         <!-- x-release-please-end -->
+        <code class="mono" data-cmd-plugin hidden>/plugin marketplace add vannt-dev/token-efficient-work
+/plugin install token-efficient-work@token-efficient-work</code>
         <button class="copy-btn" type="button" data-copy>Copy</button>
       </div>
     </div>
-    <p class="install-note">Run from your project root. No clone needed — installs into <span class="mono">.claude/</span>, <span class="mono">.agents/</span>, <span class="mono">.cursor/</span> and each tool's instructions file, then you commit it. <a href="https://github.com/vannt-dev/token-efficient-work#readme" target="_blank" rel="noopener">Full install options ↗</a></p>
+    <p class="install-note">Run from your project root. No clone needed — installs into <span class="mono">.claude/</span>, <span class="mono">.agents/</span>, <span class="mono">.cursor/</span> and each tool's instructions file, then you commit it. Only on Claude Code? Run the plugin commands inside it instead: the skill alone, nothing to commit. The read guard is a second, optional plugin, <span class="mono">token-efficient-work-read-guard</span>. <a href="https://github.com/vannt-dev/token-efficient-work#readme" target="_blank" rel="noopener">Full install and uninstall options ↗</a></p>
   </div>
 </section>
 
@@ -551,21 +554,23 @@
 (function () {
   var root = document.querySelector('[data-install]');
   var tabs = root.querySelectorAll('.tab');
-  var cmdBash = root.querySelector('[data-cmd-bash]');
-  var cmdPs = root.querySelector('[data-cmd-ps]');
+  var cmds = {
+    bash: root.querySelector('[data-cmd-bash]'),
+    ps: root.querySelector('[data-cmd-ps]'),
+    plugin: root.querySelector('[data-cmd-plugin]')
+  };
+  var active = cmds.bash;
   tabs.forEach(function (tab) {
     tab.addEventListener('click', function () {
       tabs.forEach(function (t) { t.setAttribute('aria-selected', 'false'); });
       tab.setAttribute('aria-selected', 'true');
-      var isPs = tab.getAttribute('data-shell') === 'ps';
-      cmdBash.hidden = isPs;
-      cmdPs.hidden = !isPs;
+      active = cmds[tab.getAttribute('data-shell')];
+      Object.keys(cmds).forEach(function (k) { cmds[k].hidden = cmds[k] !== active; });
     });
   });
 
   var copyBtn = root.querySelector('[data-copy]');
   copyBtn.addEventListener('click', function () {
-    var active = cmdPs.hidden ? cmdBash : cmdPs;
     var text = active.textContent.trim();
     function done(ok) {
       copyBtn.textContent = ok ? 'Copied' : 'Select & copy';
