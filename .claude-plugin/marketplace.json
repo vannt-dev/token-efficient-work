@@ -1,0 +1,21 @@
+{
+  "name": "token-efficient-work",
+  "owner": { "name": "vannt-dev", "url": "https://github.com/vannt-dev" },
+  "metadata": {
+    "description": "token-efficient-work for Claude Code: the skill, and an optional read guard hook."
+  },
+  "plugins": [
+    {
+      "name": "token-efficient-work",
+      "source": "./",
+      "description": "The skill: five rules against redundant reads, re-checks and over-long output. No hooks.",
+      "category": "productivity"
+    },
+    {
+      "name": "token-efficient-work-read-guard",
+      "source": "./hooks/claude-code",
+      "description": "Optional. A hook that refuses a whole-file Read of a source file over 400 lines.",
+      "category": "productivity"
+    }
+  ]
+}

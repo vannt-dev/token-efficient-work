@@ -4,8 +4,8 @@ The skill asks the agent to locate before it reads. `guard-full-read.mjs` turns 
 into a gate, for Claude Code only: a `Read` with no `offset` and no `limit` on a source file longer
 than 400 lines is refused, and the refusal tells the agent to search first and read a range.
 
-It is not installed by `install.sh` or `install-project.sh`. Turn it on yourself after you have
-seen what it would catch.
+It is not installed by `install.sh`, `install-project.sh` or the `token-efficient-work` plugin.
+Turn it on yourself after you have seen what it would catch.
 
 ## 1. Measure first
 
@@ -20,8 +20,26 @@ need the guard.
 
 ## 2. Turn it on
 
-Requires Node.js 18 or newer on `PATH`. Copy the hook into the project and register it in
-`.claude/settings.json`:
+Requires Node.js 18 or newer on `PATH`.
+
+### As a plugin (every project)
+
+The guard is its own plugin in this repo's Claude Code marketplace, separate from the skill
+plugin, so installing the skill never turns it on. Installing this plugin does:
+
+```text
+/plugin marketplace add vannt-dev/token-efficient-work
+/plugin install token-efficient-work-read-guard@token-efficient-work
+```
+
+On Claude Code 2.1.275 or later one line does both:
+`/plugin install token-efficient-work-read-guard --marketplace vannt-dev/token-efficient-work`.
+`/plugin disable token-efficient-work-read-guard@token-efficient-work` turns it off again, and
+`/plugin uninstall` removes it.
+
+### By hand (one project)
+
+Copy the hook into the project and register it in `.claude/settings.json`:
 
 ```bash
 mkdir -p .claude/hooks

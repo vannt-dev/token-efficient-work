@@ -1,0 +1,14 @@
+{
+  "name": "token-efficient-work-read-guard",
+  "version": "0.3.1",
+  "description": "Optional hook: refuses a whole-file Read of a source file over 400 lines and asks for a range.",
+  "author": {
+    "name": "vannt-dev",
+    "url": "https://github.com/vannt-dev"
+  },
+  "homepage": "https://github.com/vannt-dev/token-efficient-work/blob/master/hooks/claude-code/README.md",
+  "repository": "https://github.com/vannt-dev/token-efficient-work",
+  "license": "MIT",
+  "keywords": ["tokens", "cost", "hook", "read"],
+  "hooks": "./hooks.json"
+}
