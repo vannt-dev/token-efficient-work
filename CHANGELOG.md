@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.3.1...v0.4.0) (2026-10-20)
+
+
+### Features
+
+* install the skill and the read guard as Claude Code plugins ([0cdfbb3](https://github.com/vannt-dev/token-efficient-work/commit/0cdfbb3498b0f65625a1b3ac9a56b565d125de04))
+* install the skill and the read guard as Claude Code plugins ([c7efdb0](https://github.com/vannt-dev/token-efficient-work/commit/c7efdb0d2cc344795e787e332d619c7d08657c60))
+
 ## [0.3.1](https://github.com/vannt-dev/token-efficient-work/compare/v0.3.0...v0.3.1) (2026-10-12)
 
 
