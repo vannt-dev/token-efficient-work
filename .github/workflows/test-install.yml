@@ -64,6 +64,29 @@ jobs:
           diff -r "$RUNNER_TEMP/before" "$TARGET" || { echo "RE-RUN CHANGED FILES"; exit 1; }
           echo "OK: bash upgrade test passed"
 
+      - name: User install, then uninstall keeps only the user's own text
+        run: |
+          set -e
+          export HOME="$RUNNER_TEMP/home"
+          mkdir -p "$HOME/.codex" "$HOME/.gemini"
+          printf 'my rule\n\nmy para\n' > "$HOME/.codex/AGENTS.md"
+          cp "$HOME/.codex/AGENTS.md" "$RUNNER_TEMP/agents.before"
+          # A v0.1.0 block has no end marker; it ends at the blank line before the user's text.
+          { grep -vF '<!-- /token-efficient-work -->' hooks/global-rule.snippet.md; printf '\nold text\n'; } > "$HOME/.gemini/GEMINI.md"
+          bash uninstall.sh
+          [ "$(cat "$HOME/.gemini/GEMINI.md")" = "old text" ] || { echo "LEGACY BLOCK NOT REMOVED"; exit 1; }
+
+          bash install.sh
+          bash install.sh
+          bash uninstall.sh
+          bash uninstall.sh
+          cmp "$HOME/.codex/AGENTS.md" "$RUNNER_TEMP/agents.before" || { echo "USER TEXT CHANGED"; exit 1; }
+          [ "$(cat "$HOME/.gemini/GEMINI.md")" = "old text" ] || { echo "USER TEXT CHANGED: GEMINI.md"; exit 1; }
+          for p in .copilot/copilot-instructions.md .agents/skills/token-efficient-work .claude/skills/token-efficient-work; do
+            [ ! -e "$HOME/$p" ] || { echo "LEFT BEHIND: $p"; exit 1; }
+          done
+          echo "OK: bash uninstall test passed"
+
   powershell:
     runs-on: windows-latest
     steps:
@@ -128,3 +151,28 @@ jobs:
           $After = (Get-ChildItem -Recurse -File $Target | Get-FileHash).Hash -join ","
           if ($Before -ne $After) { Write-Error "RE-RUN CHANGED FILES"; exit 1 }
           Write-Host "OK: powershell upgrade test passed"
+
+      - name: User install, then uninstall keeps only the user's own text
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $UserHome = Join-Path $env:RUNNER_TEMP "home"
+          New-Item -ItemType Directory -Force -Path "$UserHome\.codex", "$UserHome\.gemini" | Out-Null
+          $Mine = "my rule`r`n`r`nmy para`r`n"
+          [IO.File]::WriteAllText("$UserHome\.codex\AGENTS.md", $Mine)
+          # A v0.1.0 block has no end marker; it ends at the blank line before the user's text.
+          $Snippet = [IO.File]::ReadAllText((Resolve-Path "hooks\global-rule.snippet.md"))
+          [IO.File]::WriteAllText("$UserHome\.gemini\GEMINI.md", $Snippet.Replace("<!-- /token-efficient-work -->`n", "") + "`nold text`n")
+          .\uninstall.ps1 -UserHome $UserHome
+          if ([IO.File]::ReadAllText("$UserHome\.gemini\GEMINI.md") -cne "old text`n") { Write-Error "LEGACY BLOCK NOT REMOVED"; exit 1 }
+
+          .\install.ps1 -UserHome $UserHome
+          .\install.ps1 -UserHome $UserHome
+          .\uninstall.ps1 -UserHome $UserHome
+          .\uninstall.ps1 -UserHome $UserHome
+          if ([IO.File]::ReadAllText("$UserHome\.codex\AGENTS.md") -cne $Mine) { Write-Error "USER TEXT CHANGED"; exit 1 }
+          if ([IO.File]::ReadAllText("$UserHome\.gemini\GEMINI.md") -cne "old text`n") { Write-Error "USER TEXT CHANGED: GEMINI.md"; exit 1 }
+          foreach ($p in ".copilot\copilot-instructions.md", ".agents\skills\token-efficient-work", ".claude\skills\token-efficient-work") {
+            if (Test-Path (Join-Path $UserHome $p)) { Write-Error "LEFT BEHIND: $p"; exit 1 }
+          }
+          Write-Host "OK: powershell uninstall test passed"

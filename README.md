@@ -39,10 +39,49 @@ checks, or writing over-long explanations.
   how many reads were whole-file, how many only confirmed an edit, how
   many repeated an earlier read. See
   [Measure your own sessions](#measure-your-own-sessions).
+- `uninstall.sh` / `uninstall.ps1` — removes what `install.sh` /
+  `install.ps1` wrote: the two skill copies and the marked rule block in
+  each global instructions file. Your own text in those files stays.
 - `hooks/claude-code/guard-full-read.mjs` — an opt-in Claude Code hook
   that refuses a whole-file read of a long source file. Not installed by
   the scripts above; see [hooks/claude-code/README.md](hooks/claude-code/README.md).
+- `.claude-plugin/marketplace.json` — a Claude Code plugin marketplace
+  with two plugins: the skill, and the read guard as a separate, optional
+  plugin. See [Install in Claude Code](#install-in-claude-code-plugin).
 - `docs/index.html` — the landing page, served via GitHub Pages.
+
+## Install in Claude Code (plugin)
+
+No clone and no script — inside Claude Code:
+
+```text
+/plugin marketplace add vannt-dev/token-efficient-work
+/plugin install token-efficient-work@token-efficient-work
+```
+
+From a terminal, the same two steps are `claude plugin marketplace add
+vannt-dev/token-efficient-work` and `claude plugin install
+token-efficient-work@token-efficient-work`. On Claude Code 2.1.275 or later
+one line does both:
+
+```text
+/plugin install token-efficient-work --marketplace vannt-dev/token-efficient-work
+```
+
+This plugin is the skill only; it adds no hooks. The
+[read guard](hooks/claude-code/README.md) is a second plugin in the same
+marketplace, and installing it turns the guard on, so add it only if you
+want it:
+
+```text
+/plugin install token-efficient-work-read-guard@token-efficient-work
+```
+
+`/plugin uninstall <name>@token-efficient-work` removes either one. The
+plugins cover Claude Code only; for Codex, Copilot CLI, Gemini CLI, Cursor
+and Aider use an installer below. If you ran `install.sh` before, Claude
+Code loads both the plugin and the copy in `~/.claude/skills/`;
+`uninstall.sh` removes the script's copies.
 
 ## Install for yourself (every project on this machine)
 
@@ -63,6 +102,11 @@ cd token-efficient-work
 Writes into your user dotfiles (`~/.claude`, `~/.agents`, `~/.codex`,
 `~/.gemini`, `~/.copilot`) — applies everywhere you use these tools,
 nothing to commit.
+
+To undo it, run `bash uninstall.sh` (or `.\uninstall.ps1`) from the same
+clone. It deletes the two skill copies and, in each instructions file, only
+the rule block from its heading to the `<!-- /token-efficient-work -->` end
+marker; a file the installer created that holds nothing else is deleted.
 
 ## Install into a project (share it with your team)
 

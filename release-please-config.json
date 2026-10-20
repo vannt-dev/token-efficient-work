@@ -19,7 +19,9 @@
         "install-project.sh",
         "install-project.ps1",
         "README.md",
-        "docs/index.html"
+        "docs/index.html",
+        { "type": "json", "path": ".claude-plugin/plugin.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "hooks/claude-code/.claude-plugin/plugin.json", "jsonpath": "$.version" }
       ]
     }
   }

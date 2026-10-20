@@ -1,6 +1,7 @@
 # Installs the token-efficient-work skill for the current user on this
 # machine (PowerShell version of install.sh, for native Windows without
 # Git Bash/WSL). Safe to re-run: re-running updates an existing rule block in place.
+param([string]$UserHome = $HOME)
 $ErrorActionPreference = "Stop"
 $Dir = $PSScriptRoot
 $Marker = "Token-efficient work (global rule"
@@ -46,11 +47,11 @@ function Add-Hook([string]$Target) {
     }
 }
 
-Install-Skill (Join-Path $HOME ".agents\skills\token-efficient-work")
-Install-Skill (Join-Path $HOME ".claude\skills\token-efficient-work")
+Install-Skill (Join-Path $UserHome ".agents\skills\token-efficient-work")
+Install-Skill (Join-Path $UserHome ".claude\skills\token-efficient-work")
 
-Add-Hook (Join-Path $HOME ".codex\AGENTS.md")
-Add-Hook (Join-Path $HOME ".gemini\GEMINI.md")
-Add-Hook (Join-Path $HOME ".copilot\copilot-instructions.md")
+Add-Hook (Join-Path $UserHome ".codex\AGENTS.md")
+Add-Hook (Join-Path $UserHome ".gemini\GEMINI.md")
+Add-Hook (Join-Path $UserHome ".copilot\copilot-instructions.md")
 
 Write-Host "Done."
