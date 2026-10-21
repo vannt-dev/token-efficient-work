@@ -13,9 +13,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   commits:
-    uses: vannt-dev/repokeeper/.github/workflows/commitlint.yml@v0
+    uses: vannt-dev/repokeeper/.github/workflows/commitlint.yml@ci/ubuntu-26-trial
   script:
-    uses: vannt-dev/repokeeper/.github/workflows/stack-script.yml@v0
+    uses: vannt-dev/repokeeper/.github/workflows/stack-script.yml@ci/ubuntu-26-trial
     with:
       shell-scripts: "true"
       powershell-scripts: "true"
