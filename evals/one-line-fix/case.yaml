@@ -1,0 +1,25 @@
+schema_version: "1.1"
+name: one-line-fix
+description: Fix a one-line bug in a named function of a long file (rules 1, 2 and 3).
+tags: [ab]
+context:
+  scaffold_script: fixture.sh
+execution:
+  prompt: >-
+    In prices.py, `apply_discount(price, discount)` returns the wrong value: with a price of
+    100 and a discount of 0.2 it should return 80. Fix it.
+  max_turns: 15
+  allowed_tools: [Read, Glob, Grep, Edit, Write, Skill]
+graders:
+  - name: discount-taken-off
+    type: regex
+    target: { source: file, path: prices.py }
+    pattern: 'return price \* \(1(\.0)? - discount\)|return price - price \* discount|return price \* \(1(\.0)? - float\(discount\)\)'
+  - name: other-functions-kept
+    type: regex
+    target: { source: file, path: prices.py }
+    pattern: 'def shipping_band_'
+    match: 'count:60'
+  - name: skill-opened
+    type: tool_used
+    tool: Skill

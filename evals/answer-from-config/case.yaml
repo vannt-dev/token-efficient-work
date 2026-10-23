@@ -1,0 +1,17 @@
+schema_version: "1.1"
+name: answer-from-config
+description: Answer a one-fact question about a long file (rules 1 and 5).
+tags: [ab]
+context:
+  scaffold_script: fixture.sh
+execution:
+  prompt: What is the default request timeout set in config.py? Answer with the number of seconds.
+  max_turns: 10
+  allowed_tools: [Read, Glob, Grep, Skill]
+graders:
+  - name: right-number
+    type: regex
+    pattern: '\b45\b'
+  - name: skill-opened
+    type: tool_used
+    tool: Skill

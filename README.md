@@ -154,6 +154,12 @@ added an unrequested re-verification pass, exactly what the skill's
 rules target. Single trial, not a statistical study; see the file for
 caveats.
 
+A repeatable Claude Code A/B (4 tasks × 3 runs, Opus 5.5, `evals/`)
+found a smaller effect: 8-11% lower cost, every task still done right,
+and the skill itself never opened: any effect comes from text the agent
+always sees (the skill's description, or the rules in `CLAUDE.md`).
+The numbers, the limits and the command to rerun it are in the same file.
+
 ## Measure your own sessions
 
 Claude Code keeps a transcript of every session. With Node.js 18+ and a

@@ -13,3 +13,6 @@ Thumbs.db
 ## repokeeper
 *.repokeeper-new
 # repokeeper:end gitignore
+
+# Eval results (claude plugin eval)
+evals/results/

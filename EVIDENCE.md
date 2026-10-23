@@ -1,5 +1,67 @@
 # Does it actually save tokens?
 
+## Claude Code A/B, 4 tasks × 3 runs (2026-10-23)
+
+The suite in [`evals/`](evals/) runs headless Claude Code on four small tasks, the same agent with
+and without the plugin, through `claude plugin eval`. Each run starts in a fresh temporary home
+and workspace, so the baseline does not see a skill installed on this machine.
+
+| task | rules it targets | fixture |
+|---|---|---|
+| `rename-symbol` | 1, 2 | 60-function module + one caller |
+| `one-line-fix` | 1, 2, 3 | 300-line module, wrong formula in one function |
+| `answer-from-config` | 1, 5 | 80-line settings file, one-fact question |
+| `comment-typo` | 2, 3 | typo in one comment, a test file nearby |
+
+Every run is checked on the files it leaves behind (regex graders), not on what the agent says.
+Claude Code 2.1.309, Opus 5.5 at default effort, Windows.
+
+| per task, median of 3 runs | baseline | skill | skill + rules in system prompt |
+|---|--:|--:|--:|
+| tasks done correctly | 12/12 | 12/12 | 12/12 |
+| skill opened | - | 0/12 | 0/12 |
+| cost, geometric mean vs baseline | 1.00 | 0.92 | 0.89 |
+| time | 1.00 | 0.81 | 0.80 |
+| input tokens | 1.00 | 0.85 | 0.89 |
+| output tokens | 1.00 | 0.88 | 0.99 |
+| tool calls | 1.00 | 0.80 | 0.96 |
+
+The third column adds the five lines of `hooks/global-rule.snippet.md` to the system prompt, as an
+install into `CLAUDE.md` does; its baseline is the baseline column of the same day.
+
+What this shows, and what it does not:
+
+- **The effect on Opus 5.5 is small.** The baseline already reads a file once and edits it; it
+  made no confirmation reads at all. The gaps (8-11% cost) are within what three runs per arm can
+  separate from noise. Treat them as "no worse, maybe a little better", not as a saving to quote.
+- **The skill was never opened** in 24 runs. Whatever effect there is comes from text the agent
+  always sees: the skill's name and description in its skill list, or the rules in the system
+  prompt. The two columns are too close to say which of them helps more.
+- **The rules changed how it reads, not always for less.** In `one-line-fix` the rules arm searched
+  first and read a range (no whole-file read) but used four tool calls instead of two, so its input
+  tokens went up on a 300-line file. Rule 1 pays off on large files, not small ones.
+- **Not measured here:** shell use (on Windows `claude plugin eval` cannot sandbox a shell, so no
+  case grants Bash, and rule 3's unrequested test runs never come up), long sessions, large repos,
+  and other models. The earlier Codex trial below saw a larger gap.
+- **No per-repo saving can be computed.** The run without the skill never happened in your repo,
+  so there is nothing to subtract. To see where your own reading goes, use
+  [`scripts/read-report.mjs`](README.md#measure-your-own-sessions).
+
+Reproduce (each run costs about USD 0.05-0.10; `--keep-temp` keeps the traces the summary reads):
+
+```bash
+claude plugin eval . --scaffold --keep-temp --allow-tools Edit Write --runs 3 --threshold 0   --max-cost-usd 6 --no-publish --output-dir evals/results/ab
+node scripts/eval-summary.mjs evals/results/ab/aggregate-result.json
+```
+
+`--scaffold` runs each case's `fixture.sh` (it only writes the fixture files). For the third
+column, copy `evals/` to `evals-rules/`, add the snippet as `append_system_prompt:` under
+`execution:` in each `case.yaml`, run with `--eval-dir evals-rules --ablation none`, and summarise
+with `--without-from evals/results/ab/aggregate-result.json`. Delete the kept `claude-eval-*`
+folders in your temp directory afterwards.
+
+## Codex CLI, single trial (2026-10)
+
 A single paired trial with real Codex CLI (`codex exec`, GPT-5.5), not a
 simulation. Same task, same fresh 2-file fixture (a ~60-function Python
 module + its one caller), run twice: once with the skill and global hook

@@ -1,0 +1,23 @@
+schema_version: "1.1"
+name: comment-typo
+description: Fix a typo in a comment, where no test run is needed (rules 2 and 3).
+tags: [ab]
+context:
+  scaffold_script: fixture.sh
+execution:
+  prompt: Fix the spelling mistake "recieve" in the comment above `send_mail` in mailer.py.
+  max_turns: 10
+  allowed_tools: [Read, Glob, Grep, Edit, Write, Skill]
+graders:
+  - name: typo-fixed
+    type: regex
+    target: { source: file, path: mailer.py }
+    pattern: '# Users who opted in receive a copy of every message\.'
+  - name: code-kept
+    type: regex
+    target: { source: file, path: mailer.py }
+    pattern: 'def template_'
+    match: 'count:40'
+  - name: skill-opened
+    type: tool_used
+    tool: Skill

@@ -1,0 +1,29 @@
+schema_version: "1.1"
+name: rename-symbol
+description: Rename a function in a long module and its one call site (rules 1 and 2).
+tags: [ab]
+context:
+  scaffold_script: fixture.sh
+execution:
+  prompt: >-
+    Rename the function `calc_total` to `compute_total` in utils.py, and update its one call
+    site in main.py to match. Then tell me it's done.
+  max_turns: 15
+  allowed_tools: [Read, Glob, Grep, Edit, Write, Skill]
+graders:
+  - name: definition-renamed
+    type: regex
+    target: { source: file, path: utils.py }
+    pattern: 'def compute_total\(items\)'
+  - name: old-name-gone
+    type: regex
+    target: { source: file, path: utils.py }
+    pattern: 'calc_total'
+    match: not_contains
+  - name: caller-updated
+    type: regex
+    target: { source: file, path: main.py }
+    pattern: 'from utils import compute_total[\s\S]*compute_total\('
+  - name: skill-opened
+    type: tool_used
+    tool: Skill
