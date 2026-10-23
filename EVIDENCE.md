@@ -13,7 +13,8 @@ and workspace, so the baseline does not see a skill installed on this machine.
 | `answer-from-config` | 1, 5 | 80-line settings file, one-fact question |
 | `comment-typo` | 2, 3 | typo in one comment, a test file nearby |
 
-Every run is checked on the files it leaves behind (regex graders), not on what the agent says.
+Regex graders check the files each run leaves behind (the question task: its answer), not what
+the agent says it did.
 Claude Code 2.1.309, Opus 5.5 at default effort, Windows.
 
 | per task, median of 3 runs | baseline | skill | skill + rules in system prompt |

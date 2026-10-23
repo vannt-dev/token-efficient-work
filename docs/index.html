@@ -524,7 +524,7 @@
 
     <p class="caveat">Single paired trial (n=1) with real Codex CLI, not a simulation — indicative of direction and rough magnitude, not a statistically powered benchmark. Full methodology and raw numbers: <a href="https://github.com/vannt-dev/token-efficient-work/blob/master/EVIDENCE.md" target="_blank" rel="noopener">EVIDENCE.md ↗</a></p>
 
-    <p class="caveat">A repeatable Claude Code A/B on four small tasks (Opus 5.5, three runs each) found a smaller effect: 8–11% lower cost with every task still done right, and the skill itself was never opened, so any effect comes from text the agent always sees: the skill's description or the rules in <code class="mono">CLAUDE.md</code>. Details and the command to rerun it are in the same file.</p>
+    <p class="caveat">A repeatable Claude Code A/B on four small tasks (Opus 5.5, three runs each) found a small effect that three runs per arm cannot separate from noise. Every task was still done right, and the skill itself was never opened, so any effect comes from text the agent always sees: the skill's description or the rules in <code class="mono">CLAUDE.md</code>. Details and the command to rerun it are in the same file.</p>
 
     <p class="caveat">Measure your own Claude Code sessions with <code class="mono">node scripts/read-report.mjs --days 30</code>: it counts whole-file reads, reads that only confirmed an edit, and repeat reads of an unchanged file. If the numbers are large, an <a href="https://github.com/vannt-dev/token-efficient-work/blob/master/hooks/claude-code/README.md">opt-in read guard</a> turns rule 1 into a gate.</p>
   </div>
