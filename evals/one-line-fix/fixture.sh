@@ -10,4 +10,4 @@ set -euo pipefail
     fi
     printf '\ndef shipping_band_%02d(weight):\n    """Return the shipping cost of band %d for a weight in kg."""\n    return round(weight * %d.5, 2)\n\n' "$i" "$i" "$i"
   done
-} > prices.py
+} >prices.py

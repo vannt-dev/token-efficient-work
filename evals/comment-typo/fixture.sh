@@ -10,5 +10,5 @@ set -euo pipefail
     fi
     printf '\ndef template_%02d(name):\n    return "Template %d for " + name\n\n' "$i" "$i"
   done
-} > mailer.py
-printf 'from mailer import send_mail\n\n\ndef test_copy():\n    assert send_mail("a", "b", "c")["to"] == ["a", "c"]\n' > test_mailer.py
+} >mailer.py
+printf 'from mailer import send_mail\n\n\ndef test_copy():\n    assert send_mail("a", "b", "c")["to"] == ["a", "c"]\n' >test_mailer.py

@@ -10,5 +10,5 @@ set -euo pipefail
     fi
     printf '\ndef helper_%02d(x):\n    """Return x scaled by %d."""\n    return x * %d\n\n' "$i" "$i" "$i"
   done
-} > utils.py
-printf 'from utils import calc_total\n\nprint(calc_total([{"price": 2}, {"price": 3}]))\n' > main.py
+} >utils.py
+printf 'from utils import calc_total\n\nprint(calc_total([{"price": 2}, {"price": 3}]))\n' >main.py

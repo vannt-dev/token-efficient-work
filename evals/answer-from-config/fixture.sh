@@ -8,4 +8,4 @@ set -euo pipefail
     [ "$i" -eq 47 ] && printf 'REQUEST_TIMEOUT_SECONDS = 45  # default for outgoing HTTP calls\n'
     printf 'FEATURE_%02d_ENABLED = %s\n' "$i" "$([ $((i % 3)) -eq 0 ] && echo True || echo False)"
   done
-} > config.py
+} >config.py
