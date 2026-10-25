@@ -7,7 +7,7 @@
 #
 # Usage (no clone needed, straight from GitHub):
 # x-release-please-start-version
-#   iwr https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.4.0/install-project.ps1 -UseBasicParsing | iex
+#   iwr https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.5.0/install-project.ps1 -UseBasicParsing | iex
 # x-release-please-end
 #
 # Safe to re-run: re-running updates an existing rule block in place and keeps
@@ -17,7 +17,7 @@ param(
     [string]$TargetDir = (Get-Location).Path
 )
 $ErrorActionPreference = "Stop"
-$TewVersion = "0.4.0" # x-release-please-version
+$TewVersion = "0.5.0" # x-release-please-version
 $Ref = if ($env:TEW_REF) { $env:TEW_REF } else { "v$TewVersion" }
 $RepoRaw = "https://raw.githubusercontent.com/vannt-dev/token-efficient-work/$Ref"
 $Marker = "Token-efficient work (global rule"
