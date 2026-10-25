@@ -1,5 +1,51 @@
 # Does it actually save tokens?
 
+## Claude Code A/B with a description that triggers (2026-10-25, not shipped)
+
+The 23/10 run below found the skill was never opened. Its description names a moment inside the
+agent's work ("about to read a file") that the agent never matches against a request. A trial
+description named the requests instead ("Use at the start of any coding task in a repository,
+such as a fix, a rename, an edit, or a question about the code, before the first file read or
+search"). Same suite, same command; Claude Code 2.1.310, Opus 5.5.
+
+| per task, median of 3 runs | baseline | skill |
+|---|--:|--:|
+| tasks done correctly | 12/12 | 12/12 |
+| skill opened | - | 12/12 |
+| cost, geometric mean vs baseline | 1.00 | 1.18 |
+| time | 1.00 | 1.11 |
+| input tokens | 1.00 | 1.15 |
+| output tokens | 1.00 | 1.24 |
+| tool calls | 1.00 | 1.35 |
+
+- **The skill now loads, and on these tasks that costs more.** Opening it is one more tool call,
+  and its text stays in the context for the rest of the run.
+- **These four tasks leave it nothing to save.** The baseline made no confirmation reads and at
+  most one whole-file read per task, so the suite can show the skill's fixed cost but not a
+  saving. A task where the baseline over-reads (a long file, a change across several files)
+  would be needed for that; the two tasks below were added for it.
+- The 23/10 columns below measured the description in the skill list, not the skill: it was not
+  in the agent's context in either arm.
+
+Two tasks were then added to give the baseline room to over-read, with no location in the prompt
+(same day, same setup, 3 runs per arm):
+
+| task | fixture | baseline whole-file reads | skill whole-file reads | cost, skill vs baseline |
+|---|---|--:|--:|--:|
+| `long-file-symptom` | 1,500-line module, bug given only by its symptom | 0 | 0 | 1.10 |
+| `three-file-rename` | a setting used in three 290-line files, file names not given | 1 | 0 | 0.97 |
+
+Every run did the task (the rename grader had an anchoring bug in this run, fixed and rechecked
+once per arm). Even here the baseline searched first and read ranges: on Opus 5.5 in Claude Code
+the habits the rules ask for are already the default, so the skill saves at most a whole-file
+read and costs its own load. Where it may still pay off is not measured: other models and agents,
+long sessions, shell-heavy work.
+
+**Decision:** the shipped description stays as it is. Making Claude Code open the skill costs
+10-18% on these tasks and saved nothing measurable. In Claude Code the cheaper way to carry the
+rules is the five-line snippet in `CLAUDE.md` (the third column of the 23/10 run). The new tasks
+stay in `evals/`, so a later model or description can be measured against them.
+
 ## Claude Code A/B, 4 tasks × 3 runs (2026-10-23)
 
 The suite in [`evals/`](evals/) runs headless Claude Code on four small tasks, the same agent with
