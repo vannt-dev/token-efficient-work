@@ -397,7 +397,7 @@
         <button class="copy-btn" type="button" data-copy>Copy</button>
       </div>
     </div>
-    <p class="install-note">Run from your project root. No clone needed — installs into <span class="mono">.claude/</span>, <span class="mono">.agents/</span>, <span class="mono">.cursor/</span> and each tool's instructions file, then you commit it. Only on Claude Code? Run the plugin commands inside it instead: the skill alone, nothing to commit. The read guard is a second, optional plugin, <span class="mono">token-efficient-work-read-guard</span>. <a href="https://github.com/vannt-dev/token-efficient-work#readme" target="_blank" rel="noopener">Full install and uninstall options ↗</a></p>
+    <p class="install-note">Run from your project root. No clone needed — installs into <span class="mono">.claude/</span>, <span class="mono">.agents/</span>, <span class="mono">.cursor/</span> and each tool's instructions file, then you commit it. Only on Claude Code? Run the plugin commands inside it instead: the skill alone, nothing to commit. The read guard and the cost band are optional plugins of their own, <span class="mono">token-efficient-work-read-guard</span> and <span class="mono">token-efficient-work-band</span>. <a href="https://github.com/vannt-dev/token-efficient-work#readme" target="_blank" rel="noopener">Full install and uninstall options ↗</a></p>
   </div>
 </section>
 
@@ -526,7 +526,7 @@
 
     <p class="caveat">A repeatable Claude Code A/B on four small tasks (Opus 5.5, three runs each) found a small effect that three runs per arm cannot separate from noise. Every task was still done right, and the skill itself was never opened, so any effect comes from text the agent always sees: the skill's description or the rules in <code class="mono">CLAUDE.md</code>. A trial description that made Claude Code open the skill cost more on those tasks and on two larger ones, because Opus 5.5 already searches first and reads ranges; in Claude Code the <code class="mono">CLAUDE.md</code> rules are the cheaper route. Details and the command to rerun it are in the same file.</p>
 
-    <p class="caveat">Measure your own Claude Code sessions with <code class="mono">node scripts/read-report.mjs --days 30</code>: it counts whole-file reads, reads that only confirmed an edit, and repeat reads of an unchanged file. If the numbers are large, an <a href="https://github.com/vannt-dev/token-efficient-work/blob/master/hooks/claude-code/README.md">opt-in read guard</a> turns rule 1 into a gate.</p>
+    <p class="caveat">Measure your own Claude Code sessions with <code class="mono">node scripts/read-report.mjs --days 30</code>: it counts whole-file reads, reads that only confirmed an edit, and repeat reads of an unchanged file. If the numbers are large, an <a href="https://github.com/vannt-dev/token-efficient-work/blob/master/hooks/claude-code/README.md">opt-in read guard</a> turns rule 1 into a gate. To watch it live, the <a href="https://github.com/vannt-dev/token-efficient-work/blob/master/hooks/claude-code-band/README.md">opt-in cost band</a> shows above the prompt what the current task costs and how many of its reads repeated an earlier one or followed an edit.</p>
   </div>
 </section>
 
