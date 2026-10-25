@@ -1,0 +1,30 @@
+schema_version: "1.1"
+name: long-file-symptom
+description: Fix a bug described only by its symptom in a 1,500-line module (rules 1 and 2).
+tags: [ab]
+context:
+  scaffold_script: fixture.sh
+execution:
+  prompt: >-
+    A customer who pays on the due date (0 days late) is still charged a late fee. The fee
+    logic is somewhere in billing.py. Fix it.
+  max_turns: 15
+  allowed_tools: [Read, Glob, Grep, Edit, Write, Skill]
+graders:
+  - name: due-day-free
+    type: regex
+    target: { source: file, path: billing.py }
+    pattern: 'if days_late > 0:|if days_late >= 1:|if days_late <= 0:'
+  - name: old-test-gone
+    type: regex
+    target: { source: file, path: billing.py }
+    pattern: 'if days_late >= 0:'
+    match: not_contains
+  - name: other-functions-kept
+    type: regex
+    target: { source: file, path: billing.py }
+    pattern: 'def invoice_line_'
+    match: 'count:165'
+  - name: skill-opened
+    type: tool_used
+    tool: Skill

@@ -1,0 +1,42 @@
+schema_version: "1.1"
+name: three-file-rename
+description: Rename a setting used across three mid-size files, file names not given (rules 1, 2 and 4).
+tags: [ab]
+context:
+  scaffold_script: fixture.sh
+execution:
+  prompt: Rename the setting RETRY_LIMIT to MAX_RETRIES everywhere in this project.
+  max_turns: 20
+  allowed_tools: [Read, Glob, Grep, Edit, Write, Skill]
+graders:
+  - name: settings-renamed
+    type: regex
+    target: { source: file, path: settings.py }
+    pattern: 'MAX_RETRIES = 3'
+  - name: client-renamed
+    type: regex
+    target: { source: file, path: client.py }
+    pattern: 'settings\.MAX_RETRIES'
+    match: 'count:2'
+  - name: worker-renamed
+    type: regex
+    target: { source: file, path: worker.py }
+    pattern: 'job\.attempts < settings\.MAX_RETRIES'
+  - name: settings-old-gone
+    type: regex
+    target: { source: file, path: settings.py }
+    pattern: 'RETRY_LIMIT'
+    match: not_contains
+  - name: client-old-gone
+    type: regex
+    target: { source: file, path: client.py }
+    pattern: 'RETRY_LIMIT'
+    match: not_contains
+  - name: worker-old-gone
+    type: regex
+    target: { source: file, path: worker.py }
+    pattern: 'RETRY_LIMIT'
+    match: not_contains
+  - name: skill-opened
+    type: tool_used
+    tool: Skill
