@@ -4,8 +4,9 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-// The Claude Code marketplace lists two plugins from this repo: the skill (repo root) and the
-// opt-in read guard (hooks/claude-code). These checks keep the manifests and files in step.
+// The Claude Code marketplace lists three plugins from this repo: the skill (repo root), the
+// opt-in read guard (hooks/claude-code) and the opt-in cost band (hooks/claude-code-band).
+// These checks keep the manifests and files in step.
 const root = fileURLToPath(new URL('..', import.meta.url));
 const json = (...parts) => JSON.parse(readFileSync(join(root, ...parts), 'utf8'));
 
@@ -14,7 +15,11 @@ const releaseVersion = json('.release-please-manifest.json')['.'];
 const byName = Object.fromEntries(marketplace.plugins.map((p) => [p.name, p]));
 
 test('every marketplace entry points at a plugin with the same name and the release version', () => {
-  assert.deepEqual(Object.keys(byName).sort(), ['token-efficient-work', 'token-efficient-work-read-guard']);
+  assert.deepEqual(Object.keys(byName).sort(), [
+    'token-efficient-work',
+    'token-efficient-work-band',
+    'token-efficient-work-read-guard',
+  ]);
   for (const entry of marketplace.plugins) {
     const manifest = json(entry.source, '.claude-plugin', 'plugin.json');
     assert.equal(manifest.name, entry.name);
@@ -23,7 +28,7 @@ test('every marketplace entry points at a plugin with the same name and the rele
   }
 });
 
-test('release-please bumps both plugin manifests', () => {
+test('release-please bumps every plugin manifest', () => {
   const extra = json('release-please-config.json').packages['.']['extra-files'];
   for (const entry of marketplace.plugins) {
     const path = join(entry.source, '.claude-plugin', 'plugin.json').replaceAll('\\', '/').replace(/^\.\//, '');
@@ -49,4 +54,12 @@ test('the read guard plugin runs the guard script that the tests cover', () => {
   assert.equal(entry.matcher, 'Read');
   assert.equal(entry.hooks[0].command, 'node "${CLAUDE_PLUGIN_ROOT}/guard-full-read.mjs"');
   assert.ok(existsSync(join(root, source, 'guard-full-read.mjs')));
+});
+
+test('the cost band plugin loads its hooks module and declares its state', () => {
+  const source = byName['token-efficient-work-band'].source;
+  const manifest = json(source, '.claude-plugin', 'plugin.json');
+  assert.deepEqual(json(source, 'hooks', 'hooks.json').modules, ['./register.tsx']);
+  assert.ok(existsSync(join(root, source, 'hooks', 'register.tsx')));
+  assert.ok(existsSync(join(root, source, manifest.types)));
 });

@@ -1,0 +1,18 @@
+{
+  "name": "token-efficient-work-band",
+  "version": "0.4.0",
+  "description": "Optional band above the prompt: what the task costs, its tokens, and how many file reads repeat.",
+  "author": {
+    "name": "vannt-dev",
+    "url": "https://github.com/vannt-dev"
+  },
+  "homepage": "https://github.com/vannt-dev/token-efficient-work/blob/master/hooks/claude-code-band/README.md",
+  "repository": "https://github.com/vannt-dev/token-efficient-work",
+  "license": "MIT",
+  "keywords": [
+    "tokens",
+    "cost",
+    "band"
+  ],
+  "types": "./types/index.d.ts"
+}
