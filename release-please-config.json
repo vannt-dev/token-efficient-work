@@ -21,7 +21,8 @@
         "README.md",
         "docs/index.html",
         { "type": "json", "path": ".claude-plugin/plugin.json", "jsonpath": "$.version" },
-        { "type": "json", "path": "hooks/claude-code/.claude-plugin/plugin.json", "jsonpath": "$.version" }
+        { "type": "json", "path": "hooks/claude-code/.claude-plugin/plugin.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "hooks/claude-code-band/.claude-plugin/plugin.json", "jsonpath": "$.version" }
       ]
     }
   }

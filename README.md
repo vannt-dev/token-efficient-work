@@ -45,9 +45,12 @@ checks, or writing over-long explanations.
 - `hooks/claude-code/guard-full-read.mjs` — an opt-in Claude Code hook
   that refuses a whole-file read of a long source file. Not installed by
   the scripts above; see [hooks/claude-code/README.md](hooks/claude-code/README.md).
+- `hooks/claude-code-band/` — an opt-in Claude Code band above the
+  prompt with the task's cost, tokens and repeated reads; see
+  [hooks/claude-code-band/README.md](hooks/claude-code-band/README.md).
 - `.claude-plugin/marketplace.json` — a Claude Code plugin marketplace
-  with two plugins: the skill, and the read guard as a separate, optional
-  plugin. See [Install in Claude Code](#install-in-claude-code-plugin).
+  with three plugins: the skill, and the read guard and the cost band as
+  separate, optional plugins. See [Install in Claude Code](#install-in-claude-code-plugin).
 - `docs/index.html` — the landing page, served via GitHub Pages.
 
 ## Install in Claude Code (plugin)
@@ -77,7 +80,15 @@ want it:
 /plugin install token-efficient-work-read-guard@token-efficient-work
 ```
 
-`/plugin uninstall <name>@token-efficient-work` removes either one. The
+The [cost band](hooks/claude-code-band/README.md) is a third, optional
+plugin: a line above the prompt with what the task costs and how many of
+its file reads repeated an earlier read or followed an edit.
+
+```text
+/plugin install token-efficient-work-band@token-efficient-work
+```
+
+`/plugin uninstall <name>@token-efficient-work` removes any of them. The
 plugins cover Claude Code only; for Codex, Copilot CLI, Gemini CLI, Cursor
 and Aider use an installer below. If you ran `install.sh` before, Claude
 Code loads both the plugin and the copy in `~/.claude/skills/`;
