@@ -26,6 +26,20 @@ and says to open it before the first read. Same suite, same command; Claude Code
 - The 23/10 columns below measured the description in the skill list, not the skill: it was not
   in the agent's context in either arm.
 
+Two tasks were then added to give the baseline room to over-read, with no location in the prompt
+(same day, same setup, 3 runs per arm):
+
+| task | fixture | baseline whole-file reads | skill whole-file reads | cost, skill vs baseline |
+|---|---|--:|--:|--:|
+| `long-file-symptom` | 1,500-line module, bug given only by its symptom | 0 | 0 | 1.10 |
+| `three-file-rename` | a setting used in three 290-line files, file names not given | 1 | 0 | 0.97 |
+
+Every run did the task (the rename grader had an anchoring bug in this run, fixed and rechecked
+once per arm). Even here the baseline searched first and read ranges: on Opus 5.5 in Claude Code
+the habits the rules ask for are already the default, so the skill saves at most a whole-file
+read and costs its own load. Where it may still pay off is not measured: other models and agents,
+long sessions, shell-heavy work.
+
 ## Claude Code A/B, 4 tasks × 3 runs (2026-10-23)
 
 The suite in [`evals/`](evals/) runs headless Claude Code on four small tasks, the same agent with
