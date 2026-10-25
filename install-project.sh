@@ -8,14 +8,14 @@
 #
 # Usage (no clone needed, straight from GitHub):
 # x-release-please-start-version
-#   curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.4.0/install-project.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.5.0/install-project.sh | bash
 # x-release-please-end
 #
 # Safe to re-run: re-running updates an existing rule block in place and keeps
 # everything else in each file. Remote installs fetch files from the release tag
 # matching this script (override with TEW_REF=<tag-or-branch>).
 set -e
-TEW_VERSION="0.4.0" # x-release-please-version
+TEW_VERSION="0.5.0" # x-release-please-version
 REPO_RAW="https://raw.githubusercontent.com/vannt-dev/token-efficient-work/${TEW_REF:-v$TEW_VERSION}"
 TARGET="${1:-$(pwd)}"
 MARKER="Token-efficient work (global rule"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.4.0...v0.5.0) (2026-10-25)
+
+
+### Features
+
+* add an opt-in cost band for Claude Code ([#24](https://github.com/vannt-dev/token-efficient-work/issues/24)) ([16dae6a](https://github.com/vannt-dev/token-efficient-work/commit/16dae6a326dd116e38463de1b97f439790c05ef0))
+
 ## [0.4.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.3.1...v0.4.0) (2026-10-20)
 
 
