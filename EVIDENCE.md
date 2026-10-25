@@ -1,5 +1,31 @@
 # Does it actually save tokens?
 
+## Claude Code A/B with a description that triggers (2026-10-25)
+
+The 23/10 run below found the skill was never opened. Its description named a moment inside the
+agent's work ("about to read a file") that the agent never matches against a request. The new
+description names the requests it covers (a fix, a rename, an edit, a question about the code)
+and says to open it before the first read. Same suite, same command; Claude Code 2.1.310, Opus 5.5.
+
+| per task, median of 3 runs | baseline | skill |
+|---|--:|--:|
+| tasks done correctly | 12/12 | 12/12 |
+| skill opened | - | 12/12 |
+| cost, geometric mean vs baseline | 1.00 | 1.18 |
+| time | 1.00 | 1.11 |
+| input tokens | 1.00 | 1.15 |
+| output tokens | 1.00 | 1.24 |
+| tool calls | 1.00 | 1.35 |
+
+- **The skill now loads, and on these tasks that costs more.** Opening it is one more tool call,
+  and its text stays in the context for the rest of the run.
+- **These four tasks leave it nothing to save.** The baseline made no confirmation reads and at
+  most one whole-file read per task, so the suite can show the skill's fixed cost but not a
+  saving. A task where the baseline over-reads (a long file, a change across several files)
+  would be needed for that; this suite has none yet.
+- The 23/10 columns below measured the description in the skill list, not the skill: it was not
+  in the agent's context in either arm.
+
 ## Claude Code A/B, 4 tasks × 3 runs (2026-10-23)
 
 The suite in [`evals/`](evals/) runs headless Claude Code on four small tasks, the same agent with

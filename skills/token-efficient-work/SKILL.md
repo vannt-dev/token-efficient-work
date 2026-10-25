@@ -1,6 +1,6 @@
 ---
 name: token-efficient-work
-description: Use when about to read a file, re-check work you just finished, add a verification step nobody asked for, or write an explanation. Applies to any coding agent (Claude Code, Codex, Copilot CLI, Gemini CLI, or similar) at risk of burning tokens on redundant re-reads, whole-file reads for a small edit, unrequested double-checking, or over-long output.
+description: Use at the start of any coding task in a repository, such as a fix, a rename, an edit, or a question about the code, before the first file read or search. Keeps the work cheap - search before reading, no re-read after a successful edit, checks sized to the risk, answers sized to the question. Applies to any coding agent (Claude Code, Codex, Copilot CLI, Gemini CLI, or similar).
 ---
 
 # Token-Efficient Work
