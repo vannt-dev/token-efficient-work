@@ -16,3 +16,7 @@ Thumbs.db
 
 # Eval results (claude plugin eval)
 evals/results/
+
+# Written by Claude Code when it loads the band from this folder (editor types)
+hooks/claude-code-band/.claude-plugin/types/
+hooks/claude-code-band/tsconfig.json
