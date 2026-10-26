@@ -21,8 +21,8 @@ checks, or writing over-long explanations.
   Copilot CLI, and Gemini CLI when placed under `~/.agents/skills/`;
   Claude Code reads its own copy under `~/.claude/skills/`.
 - `hooks/global-rule.snippet.md` — a short (~70-word) always-loaded
-  summary of the same 5 rules, for tools that don't reliably self-invoke
-  skills. Installed into each tool's global instructions file
+  summary of the same 5 rules, and the part that measurably saved tokens
+  on Codex (see [Does this actually save tokens?](#does-this-actually-save-tokens)). Installed into each tool's global instructions file
   (`~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md`,
   `~/.copilot/copilot-instructions.md`).
 - `install.sh` / `install.ps1` — copies/updates both onto the current
@@ -158,19 +158,23 @@ or branch.
 
 ## Does this actually save tokens?
 
-A real paired Codex CLI run (with vs. without the skill, same task) is
-in [EVIDENCE.md](EVIDENCE.md): 2 tool calls vs. 4, ~30% fewer input
-tokens — the no-skill run read whole files it had already located and
-added an unrequested re-verification pass, exactly what the skill's
-rules target. Single trial, not a statistical study; see the file for
-caveats.
+It depends on the agent, and on which part you install. The measured
+runs are in [EVIDENCE.md](EVIDENCE.md), with the commands to repeat them:
 
-A repeatable Claude Code A/B (4 tasks × 3 runs, Opus 5.5, `evals/`)
-found a small effect that three runs per arm cannot separate from
-noise. Every task was still done right, and the skill itself was never
-opened: any effect comes from text the agent always sees (the skill's
-description, or the rules in `CLAUDE.md`).
-The numbers, the limits and the command to rerun it are in the same file.
+- **Codex CLI:** the five rules in `AGENTS.md` (what `install.sh` and
+  `install-project.sh` write) used fewer tokens and fewer tool calls than
+  no guidance on most of the six tasks in `evals/`, and every run was
+  right. The skill on its own did not save: reading it cost about what it
+  saved. One unguided run answered a question about a file without
+  opening it, and got it wrong.
+- **Claude Code (Opus 5.5):** no measurable saving. Even unguided, it
+  searched first and read ranges on a 1,500-line file, so there was
+  little to save. A trial description that made Claude Code open the
+  skill every time cost more, so the shipped description was kept.
+
+On Codex the rule block in the instructions file is the part that pays
+off; the skill adds the detail behind each rule. Copilot CLI, Gemini CLI,
+Cursor and Aider have not been measured.
 
 ## Measure your own sessions
 
