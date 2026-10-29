@@ -98,8 +98,38 @@ test('the text report names the largest whole-file reads', () => {
   assert.match(text, /\/src\/old\.ts/);
 });
 
-// tests/fixtures/sample holds one made-up session: three whole-file reads over 400 lines (two of
-// them source code), one read right after an edit and one repeat read. The README shows its report.
+// tests/fixtures/shell holds two sessions of file reads done through the Bash and PowerShell tools:
+// every reader the report knows, and commands it must skip rather than guess (a pipeline, a glob,
+// two files, an unknown flag, `cd x && cat y`, a variable, a redirect, bash's own `type`).
+test('counts file reads done through the shell under the same rules, and skips what it cannot read', () => {
+  const shell = fileURLToPath(new URL('./fixtures/shell', import.meta.url));
+  const result = spawnSync(process.execPath, [script, '--dir', shell, '--json'], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const data = JSON.parse(result.stdout);
+  // Only the two Read tool calls; the shell reads have their own totals.
+  assert.equal(data.reads.total, 2);
+  assert.equal(data.reads.whole, 2);
+  assert.equal(data.shellReads.total, 14);
+  assert.equal(data.shellReads.ranged, 6);
+  assert.equal(data.shellReads.whole, 8);
+  // cat src/big.ts and Get-Content .\src\main.py, plus the Read of each.
+  assert.equal(data.wholeOverLimit.count, 4);
+  assert.equal(data.wholeOverLimit.shell.count, 2);
+  // The read guard sees only the Read tool.
+  assert.equal(data.sourceOverLimit.count, 2);
+  // cat /repo/src/a.ts right after the Edit of it.
+  assert.equal(data.confirmationReads.count, 1);
+  assert.equal(data.confirmationReads.shell.count, 1);
+  // Read after cat (both sessions: relative and .\ paths resolve against the session's cwd),
+  // cat after cat, Get-Content -Raw after type.
+  assert.equal(data.repeatReads.count, 4);
+  assert.equal(data.repeatReads.shell.count, 2);
+  assert.ok(data.largest.some((item) => item.shell && item.file.endsWith('src/big.ts')));
+});
+
+// tests/fixtures/sample holds one made-up session: four whole-file reads over 400 lines (two of
+// them source code, one through the shell), one read right after an edit and two repeat reads (one
+// through the shell). The README shows its report.
 test('the README example is the report for the sample transcript', () => {
   const sample = fileURLToPath(new URL('./fixtures/sample', import.meta.url));
   const result = spawnSync(process.execPath, [script, '--dir', sample], { encoding: 'utf8' });
@@ -107,7 +137,9 @@ test('the README example is the report for the sample transcript', () => {
   const lines = result.stdout.replace(/\r\n/g, '\n').split('\n');
   assert.match(lines[0], /: 1 transcript,/);
   const from = lines.findIndex((line) => line.startsWith('Read calls'));
-  const to = lines.findIndex((line) => line.startsWith('Repeat whole-file reads'));
+  // The last rule row and the shell row under it.
+  const to = lines.findIndex((line) => line.startsWith('Repeat whole-file reads')) + 1;
+  assert.match(lines[to], /through the shell/);
   const example = lines.slice(from, to + 1).join('\n');
   const readme = readFileSync(fileURLToPath(new URL('../README.md', import.meta.url)), 'utf8');
   assert.ok(readme.replace(/\r\n/g, '\n').includes(example), 'README example differs from the sample report');
