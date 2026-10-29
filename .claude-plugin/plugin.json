@@ -1,6 +1,6 @@
 {
   "name": "token-efficient-work",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Five rules that stop coding agents from burning tokens on redundant reads, re-checks and long explanations.",
   "author": {
     "name": "vannt-dev",

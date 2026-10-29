@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.6.0...v0.7.0) (2026-10-29)
+
+
+### Features
+
+* count file reads done through the shell in the read report ([#37](https://github.com/vannt-dev/token-efficient-work/issues/37)) ([4ac6474](https://github.com/vannt-dev/token-efficient-work/commit/4ac6474827501a9a67db3f3390357288daeeaaac))
+
+
+### Bug Fixes
+
+* reject unknown parameters in the PowerShell installers ([#36](https://github.com/vannt-dev/token-efficient-work/issues/36)) ([06861f4](https://github.com/vannt-dev/token-efficient-work/commit/06861f4d4b82a3efbc883fc57530bb72e29c6f31))
+
 ## [0.6.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.5.0...v0.6.0) (2026-10-29)
 
 
