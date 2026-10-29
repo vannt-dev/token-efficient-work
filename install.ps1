@@ -5,6 +5,12 @@
 # only when all are current, i.e. when a re-run would change nothing.
 param([string]$UserHome = $HOME, [switch]$Check)
 $ErrorActionPreference = "Stop"
+# A misspelt parameter (-ProjectRoot, -Chek) lands in $args instead of failing; stop before
+# writing anything, with exit 2 like the bash scripts. $args is empty under iwr | iex.
+if ($args.Count) {
+    [Console]::Error.WriteLine("unknown parameter: $args (usage: install.ps1 [-UserHome DIR] [-Check])")
+    exit 2
+}
 $Dir = $PSScriptRoot
 $Marker = "Token-efficient work (global rule"
 $EndMarker = "<!-- /token-efficient-work -->"

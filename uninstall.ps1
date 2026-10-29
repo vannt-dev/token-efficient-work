@@ -3,6 +3,12 @@
 # the block is left untouched. Safe to re-run.
 param([string]$UserHome = $HOME)
 $ErrorActionPreference = "Stop"
+# A misspelt parameter (-ProjectRoot, -Chek) lands in $args instead of failing; stop before
+# writing anything, with exit 2 like the bash scripts. $args is empty under iwr | iex.
+if ($args.Count) {
+    [Console]::Error.WriteLine("unknown parameter: $args (usage: uninstall.ps1 [-UserHome DIR])")
+    exit 2
+}
 $Marker = "Token-efficient work (global rule"
 $EndMarker = "<!-- /token-efficient-work -->"
 
