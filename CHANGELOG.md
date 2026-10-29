@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/vannt-dev/token-efficient-work/compare/v0.5.0...v0.5.1) (2026-10-29)
+
+
+### Documentation
+
+* say where the rules save tokens and what Claude Code users get ([#32](https://github.com/vannt-dev/token-efficient-work/issues/32)) ([4a16c83](https://github.com/vannt-dev/token-efficient-work/commit/4a16c83317d538eeaf852cf4ce9a2ca986f9f096))
+* say which part saves tokens on which agent ([#30](https://github.com/vannt-dev/token-efficient-work/issues/30)) ([6491176](https://github.com/vannt-dev/token-efficient-work/commit/6491176347542f3bec9a375e02561c24594e1412))
+
 ## [0.5.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.4.0...v0.5.0) (2026-10-25)
 
 
