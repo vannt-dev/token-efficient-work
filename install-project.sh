@@ -9,7 +9,7 @@
 #
 # Usage (no clone needed, straight from GitHub):
 # x-release-please-start-version
-#   curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.5.0/install-project.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/vannt-dev/token-efficient-work/v0.6.0/install-project.sh | bash
 # x-release-please-end
 #
 # Safe to re-run: re-running updates an existing rule block in place and keeps
@@ -18,7 +18,7 @@
 # --check writes nothing: it reports each target as current, outdated or missing, and exits 0
 # only when all are current, i.e. when a re-run would change nothing.
 set -e
-TEW_VERSION="0.5.0" # x-release-please-version
+TEW_VERSION="0.6.0" # x-release-please-version
 REPO_RAW="https://raw.githubusercontent.com/vannt-dev/token-efficient-work/${TEW_REF:-v$TEW_VERSION}"
 CHECK=0
 TARGET=""
