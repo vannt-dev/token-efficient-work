@@ -21,6 +21,12 @@ param(
     [switch]$Check
 )
 $ErrorActionPreference = "Stop"
+# A misspelt parameter (-ProjectRoot, -Chek) lands in $args instead of failing; stop before
+# writing anything, with exit 2 like the bash scripts. $args is empty under iwr | iex.
+if ($args.Count) {
+    [Console]::Error.WriteLine("unknown parameter: $args (usage: install-project.ps1 [-TargetDir DIR] [-Check])")
+    exit 2
+}
 $TewVersion = "0.6.0" # x-release-please-version
 $Ref = if ($env:TEW_REF) { $env:TEW_REF } else { "v$TewVersion" }
 $RepoRaw = "https://raw.githubusercontent.com/vannt-dev/token-efficient-work/$Ref"

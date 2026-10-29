@@ -262,3 +262,40 @@ jobs:
           if (-not $Out.Contains("outdated -> $Gemini")) { Write-Error "STALE BLOCK NOT FLAGGED"; exit 1 }
           Write-Host "OK: powershell -Check test passed"
           exit 0
+
+      - name: An unknown parameter exits 2 and writes nothing
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $Repo = (Get-Location).Path
+          # A typo used to be ignored: -ProjectRoot installed into the current directory.
+          $Here = Join-Path $env:RUNNER_TEMP "typo-cwd"
+          New-Item -ItemType Directory -Force -Path $Here | Out-Null
+          Push-Location $Here
+          & "$Repo\install-project.ps1" -ProjectRoot x
+          $Code = $LASTEXITCODE
+          Pop-Location
+          if ($Code -ne 2) { Write-Error "-ProjectRoot: exit $Code, want 2"; exit 1 }
+          if (Get-ChildItem -Force $Here) { Write-Error "-ProjectRoot WROTE TO THE CURRENT DIRECTORY"; exit 1 }
+
+          $Target = Join-Path $env:RUNNER_TEMP "typo-target"
+          New-Item -ItemType Directory -Force -Path $Target | Out-Null
+          & "$Repo\install-project.ps1" -TargetDir $Target -Chek
+          if ($LASTEXITCODE -ne 2) { Write-Error "install-project -Chek: exit $LASTEXITCODE, want 2"; exit 1 }
+          if (Get-ChildItem -Force $Target) { Write-Error "install-project -Chek WROTE FILES"; exit 1 }
+
+          # -UserHome stays on every call, so a regression cannot touch the runner's real home.
+          $UserHome = Join-Path $env:RUNNER_TEMP "typo-home"
+          New-Item -ItemType Directory -Force -Path $UserHome | Out-Null
+          & "$Repo\install.ps1" -UserHome $UserHome -Chek
+          if ($LASTEXITCODE -ne 2) { Write-Error "install -Chek: exit $LASTEXITCODE, want 2"; exit 1 }
+          if (Get-ChildItem -Force $UserHome) { Write-Error "install -Chek WROTE FILES"; exit 1 }
+
+          & "$Repo\install.ps1" -UserHome $UserHome
+          $Before = (Get-ChildItem -Recurse -File $UserHome | Get-FileHash).Hash -join ","
+          & "$Repo\uninstall.ps1" -UserHome $UserHome -Force
+          if ($LASTEXITCODE -ne 2) { Write-Error "uninstall -Force: exit $LASTEXITCODE, want 2"; exit 1 }
+          $After = (Get-ChildItem -Recurse -File $UserHome | Get-FileHash).Hash -join ","
+          if ($Before -ne $After) { Write-Error "uninstall -Force REMOVED FILES"; exit 1 }
+          Write-Host "OK: powershell unknown parameter test passed"
+          exit 0
