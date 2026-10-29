@@ -53,7 +53,8 @@ works alongside it.
   or stale rule block isn't upgraded, or a re-run changes any file.
 - `scripts/read-report.mjs` — measures your own Claude Code sessions:
   how many reads were whole-file, how many only confirmed an edit, how
-  many repeated an earlier read. See
+  many repeated an earlier read, counting `cat`, `head`, `sed -n` and
+  `Get-Content` reads through the shell as well. See
   [Measure your own sessions](#measure-your-own-sessions).
 - `uninstall.sh` / `uninstall.ps1` — removes what `install.sh` /
   `install.ps1` wrote: the two skill copies and the marked rule block in
@@ -223,12 +224,31 @@ What it prints, here for the one made-up session under
 Read calls                                          8
   with a range                                      3
   whole-file                                        5   63% of reads, about 16.3K tokens
+Reads through the shell (cat, head, sed -n...)      3
+  with a range                                      1
+  whole-file                                        2   67% of them, about 3.6K tokens
 
-Whole-file reads over 400 lines                     3   about 14.8K tokens   (rule 1)
+Whole-file reads over 400 lines                     4   about 18.3K tokens   (rule 1)
   of which source code (the guard refuses)          2   about 10.6K tokens
+  of which through the shell                        1   about 3.4K tokens
 Reads right after a successful edit                 1   about 265 tokens   (rule 2)
-Repeat whole-file reads of an unchanged file        1   about 715 tokens   (rule 4)
+  of which through the shell                        0   about 0 tokens
+Repeat whole-file reads of an unchanged file        2   about 908 tokens   (rule 4)
+  of which through the shell                        1   about 193 tokens
 ```
+
+A file read through the Bash or PowerShell tool counts under the same
+rules, and the "through the shell" rows show how much of each came that
+way. Only a single reader on a single file is recognised: `cat`, `less`,
+`more`, `head`, `tail` (`-n N`, `-N`) and `sed -n 'A,Bp'` in Bash;
+`Get-Content`, `gc`, `cat` and `type` in PowerShell (`-TotalCount`,
+`-Head`, `-First`, `-Tail`, `-Last` make it a ranged read). Anything
+else is skipped, not guessed: pipelines (`Get-Content f | Select-Object
+-First 5`), `cd dir && cat f`, redirects, globs, several files,
+variables and unlisted options. Relative paths resolve against the
+session's directory. A shell write (`sed -i`, `>`) is not seen as an
+edit, and the read guard covers only the Read tool, so the source-code
+row counts Read calls only.
 
 Tokens are estimated at 4 characters each from what the tool returned,
 and the report cannot know what a ranged read would have cost instead,

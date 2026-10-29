@@ -15,12 +15,20 @@
 //   repeat reads                      a whole-file Read of a file already read whole in the same
 //                                     transcript, with no edit to it in between (rule 4)
 //
+// A file read through the Bash or PowerShell tool counts too, under the same rules, and is shown
+// on its own rows. Only one reader on one file is understood: `cat`, `less`, `more` (whole file),
+// `head`, `tail` with -n N or -N, and `sed -n 'A,Bp'` (a range) in Bash; `Get-Content`, `gc`,
+// `cat`, `type` in PowerShell, ranged with -TotalCount, -Head, -First, -Tail or -Last. Anything
+// else is skipped, not guessed: a pipeline, `cd x && cat y`, a redirect, a glob, two files, a
+// variable, an option not listed here. Relative paths resolve against the session's directory.
+// Shell writes (`sed -i`, `>`) are not seen as edits.
+//
 // Sizes are the characters the tool returned; tokens are an estimate at 4 characters each. The
 // report shows where the cost sits. It cannot know what a ranged read would have cost instead.
 
 import { createReadStream, existsSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { extname, join, relative, sep } from 'node:path';
+import { extname, join, posix, relative, sep } from 'node:path';
 import { createInterface } from 'node:readline';
 
 const CHARS_PER_TOKEN = 4;
@@ -32,6 +40,122 @@ const SOURCE_EXTENSIONS = new Set([
   '.lua', '.m', '.mjs', '.php', '.py', '.rb', '.rs', '.scala', '.sh', '.sql', '.svelte', '.swift',
   '.ts', '.tsx', '.vue',
 ]);
+
+const SHELL_TOOLS = new Set(['Bash', 'PowerShell']);
+// Characters, outside quotes, that make a command more than one plain reader on one file: both
+// shells' operators, variables, globs and comments, bash's backslash escape, and PowerShell's
+// array comma and splat.
+const SHELL_SPECIAL = { Bash: '|&;<>()$`{}#*?[~\\\n\r', PowerShell: '|&;<>()$`{}#*?[~,@\n\r' };
+const COUNT = /^\d+$/;
+const SED_RANGE = /^(\d+|\$)(,(\d+|\$|\+\d+))?p$/;
+
+/** The words of a command with quotes removed, or null if it holds anything but plain words. */
+function shellWords(command, tool) {
+  const words = [];
+  let word = null;
+  let quote = '';
+  for (const ch of command) {
+    if (quote) {
+      if (ch === quote) quote = '';
+      else if (quote === '"' && (ch === '$' || ch === '`' || (ch === '\\' && tool === 'Bash'))) return null;
+      else word += ch;
+    } else if (ch === ' ' || ch === '\t') {
+      if (word !== null) words.push(word);
+      word = null;
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+      word ??= '';
+    } else if (SHELL_SPECIAL[tool].includes(ch)) {
+      return null;
+    } else {
+      word = (word ?? '') + ch;
+    }
+  }
+  if (quote) return null;
+  if (word !== null) words.push(word);
+  return words;
+}
+
+const isOption = (word) => word.startsWith('-');
+const oneFile = (words) => (words.length === 1 && !isOption(words[0]) ? { file: words[0], ranged: false } : null);
+
+/** head and tail: -n N, -nN, -N or --lines=N (tail also +N), then one file. No count is 10 lines. */
+function headTail(words, tail) {
+  let file = null;
+  for (let i = 0; i < words.length; i += 1) {
+    const word = words[i];
+    let count;
+    if (word === '-n' || word === '--lines') count = words[++i];
+    else if (word.startsWith('--lines=')) count = word.slice('--lines='.length);
+    else if (/^-n./.test(word)) count = word.slice(2);
+    else if (/^-\d+$/.test(word)) count = word.slice(1);
+    else if (isOption(word) || file !== null) return null;
+    else {
+      file = word;
+      continue;
+    }
+    count = String(count ?? '');
+    if (!COUNT.test(tail ? count.replace(/^\+/, '') : count)) return null;
+  }
+  return file === null ? null : { file, ranged: true };
+}
+
+/** Get-Content and its aliases: one path, -Raw, -Encoding X, and a line count for a range. */
+function getContent(words) {
+  let file = null;
+  let ranged = false;
+  for (let i = 0; i < words.length; i += 1) {
+    const option = words[i].toLowerCase();
+    if (option === '-path' || option === '-literalpath') {
+      if (file !== null || words[i + 1] == null || isOption(words[i + 1])) return null;
+      file = words[++i];
+    } else if (option === '-encoding') {
+      if (!/^[\w-]+$/.test(words[++i] ?? '')) return null;
+    } else if (['-totalcount', '-head', '-first', '-tail', '-last'].includes(option)) {
+      if (!COUNT.test(words[++i] ?? '')) return null;
+      ranged = true;
+    } else if (option !== '-raw') {
+      if (isOption(option) || file !== null) return null;
+      file = words[i];
+    }
+  }
+  return file === null ? null : { file, ranged };
+}
+
+const BASH_READERS = {
+  cat: (words) => oneFile(words.filter((word) => word !== '-n')),
+  less: oneFile,
+  more: oneFile,
+  head: (words) => headTail(words, false),
+  tail: (words) => headTail(words, true),
+  sed: (words) =>
+    words.length === 3 && words[0] === '-n' && SED_RANGE.test(words[1]) && !isOption(words[2])
+      ? { file: words[2], ranged: true }
+      : null,
+};
+// PowerShell names are case-insensitive; `type` here is Get-Content, not the bash builtin.
+const POWERSHELL_READERS = { 'get-content': getContent, gc: getContent, cat: getContent, type: getContent };
+
+/**
+ * The file a Bash or PowerShell command reads, as { file, ranged }, or null when the command is
+ * not one known reader on one file. A relative path resolves against the session's directory.
+ */
+function shellRead(tool, command, cwd) {
+  if (typeof command !== 'string') return null;
+  const words = shellWords(command.trim(), tool);
+  if (!words || words.length < 2) return null;
+  const readers = tool === 'Bash' ? BASH_READERS : POWERSHELL_READERS;
+  const name = tool === 'Bash' ? words[0] : words[0].toLowerCase();
+  const read = Object.hasOwn(readers, name) ? readers[name](words.slice(1)) : null;
+  // A glob, a home path or a PowerShell drive such as env: is not a plain file.
+  if (!read || /[*?[\]]/.test(read.file) || read.file.startsWith('~') || /^[a-z]{2,}:/i.test(read.file)) {
+    return null;
+  }
+  const path = read.file.replaceAll('\\', '/');
+  if (/^([a-z]:)?\//i.test(path)) return { file: posix.normalize(path), ranged: read.ranged };
+  if (!cwd) return null;
+  return { file: posix.normalize(`${String(cwd).replaceAll('\\', '/')}/${path}`), ranged: read.ranged };
+}
 
 function parseArgs(argv) {
   const envLimit = Number.parseInt(process.env.TEW_READ_GUARD_MAX_LINES ?? '', 10);
@@ -95,11 +219,14 @@ async function loadCalls(path) {
     if (!Array.isArray(content)) continue;
     for (const part of content) {
       if (part?.type === 'tool_use') {
+        const shell = SHELL_TOOLS.has(part.name) ? shellRead(part.name, part.input?.command, entry.cwd) : null;
+        const path = shell ? shell.file : part.input?.file_path;
         const call = {
           name: part.name,
-          file: normalize(part.input?.file_path),
-          shown: String(part.input?.file_path ?? ''),
-          ranged: part.input?.offset != null || part.input?.limit != null,
+          file: normalize(path),
+          shown: String(path ?? ''),
+          ranged: shell ? shell.ranged : part.input?.offset != null || part.input?.limit != null,
+          shell: shell !== null,
           time: Date.parse(entry.timestamp ?? '') || 0,
           chars: 0,
           lines: 0,
@@ -124,29 +251,38 @@ function analyse(calls, { since, maxLines }, totals) {
   let previous = null;
   for (const call of calls) {
     const counted = call.time === 0 || call.time >= since;
-    if (call.name === 'Read' && call.file) {
+    // A rule counts reads of both kinds and keeps the shell's part apart as well.
+    const add = (bucket) => {
+      bucket.count += 1;
+      bucket.chars += call.chars;
+      if (call.shell) {
+        bucket.shell.count += 1;
+        bucket.shell.chars += call.chars;
+      }
+    };
+    if ((call.name === 'Read' || call.shell) && call.file) {
       if (counted) {
-        totals.reads.total += 1;
-        if (call.ranged) totals.reads.ranged += 1;
+        const reads = call.shell ? totals.shellReads : totals.reads;
+        reads.total += 1;
+        if (call.ranged) reads.ranged += 1;
         else {
-          totals.reads.whole += 1;
-          totals.reads.wholeChars += call.chars;
+          reads.whole += 1;
+          reads.wholeChars += call.chars;
           if (call.lines > maxLines) {
-            totals.wholeOverLimit.count += 1;
-            totals.wholeOverLimit.chars += call.chars;
-            if (SOURCE_EXTENSIONS.has(extname(call.file))) {
+            add(totals.wholeOverLimit);
+            // The read guard sees only the Read tool.
+            if (!call.shell && SOURCE_EXTENSIONS.has(extname(call.file))) {
               totals.sourceOverLimit.count += 1;
               totals.sourceOverLimit.chars += call.chars;
             }
-            totals.largest.push({ file: call.shown, lines: call.lines, chars: call.chars });
+            const item = { file: call.shown, lines: call.lines, chars: call.chars };
+            totals.largest.push(call.shell ? { ...item, shell: true } : item);
           }
         }
         if (previous && EDIT_TOOLS.has(previous.name) && !previous.failed && previous.file === call.file) {
-          totals.confirmationReads.count += 1;
-          totals.confirmationReads.chars += call.chars;
+          add(totals.confirmationReads);
         } else if (!call.ranged && readWhole.has(call.file)) {
-          totals.repeatReads.count += 1;
-          totals.repeatReads.chars += call.chars;
+          add(totals.repeatReads);
         }
       }
       if (!call.ranged && !call.failed) readWhole.add(call.file);
@@ -163,27 +299,37 @@ const tokens = (chars) => {
 };
 
 function render(totals, options) {
-  const { reads } = totals;
-  const share = reads.total ? Math.round((reads.whole / reads.total) * 100) : 0;
+  const { reads, shellReads } = totals;
+  const share = (part) => (part.total ? Math.round((part.whole / part.total) * 100) : 0);
   const window = options.days ? `last ${options.days} days` : 'all time';
   const row = (label, bucket, rule) =>
     `${label.padEnd(46)} ${String(bucket.count).padStart(6)}   about ${tokens(bucket.chars)} tokens${rule}`;
+  const tally = (label, part, of) => [
+    `${label.padEnd(46)} ${String(part.total).padStart(6)}`,
+    `${'  with a range'.padEnd(46)} ${String(part.ranged).padStart(6)}`,
+    `${'  whole-file'.padEnd(46)} ${String(part.whole).padStart(6)}   ` +
+      `${share(part)}% of ${of}, about ${tokens(part.wholeChars)} tokens`,
+  ];
   const out = [
     `token-efficient-work read report: ${totals.transcripts} transcript${totals.transcripts === 1 ? '' : 's'}, ${window}`,
     '',
-    `${'Read calls'.padEnd(46)} ${String(reads.total).padStart(6)}`,
-    `${'  with a range'.padEnd(46)} ${String(reads.ranged).padStart(6)}`,
-    `${'  whole-file'.padEnd(46)} ${String(reads.whole).padStart(6)}   ${share}% of reads, about ${tokens(reads.wholeChars)} tokens`,
+    ...tally('Read calls', reads, 'reads'),
+    ...tally('Reads through the shell (cat, head, sed -n...)', shellReads, 'them'),
     '',
     row(`Whole-file reads over ${options.maxLines} lines`, totals.wholeOverLimit, '   (rule 1)'),
     row('  of which source code (the guard refuses)', totals.sourceOverLimit, ''),
+    row('  of which through the shell', totals.wholeOverLimit.shell, ''),
     row('Reads right after a successful edit', totals.confirmationReads, '   (rule 2)'),
+    row('  of which through the shell', totals.confirmationReads.shell, ''),
     row('Repeat whole-file reads of an unchanged file', totals.repeatReads, '   (rule 4)'),
+    row('  of which through the shell', totals.repeatReads.shell, ''),
   ];
   if (totals.largest.length) {
     out.push('', 'Largest whole-file reads:');
     for (const item of totals.largest) {
-      out.push(`  ${String(item.lines).padStart(6)} lines   about ${tokens(item.chars).padStart(6)} tokens   ${item.file}`);
+      const via = item.shell ? '   (shell)' : '';
+      const size = `${String(item.lines).padStart(6)} lines   about ${tokens(item.chars).padStart(6)} tokens`;
+      out.push(`  ${size}   ${item.file}${via}`);
     }
   }
   return out.join('\n');
@@ -211,10 +357,11 @@ async function main() {
     maxLines: options.maxLines,
     days: options.days,
     reads: { total: 0, ranged: 0, whole: 0, wholeChars: 0 },
-    wholeOverLimit: { count: 0, chars: 0 },
+    shellReads: { total: 0, ranged: 0, whole: 0, wholeChars: 0 },
+    wholeOverLimit: { count: 0, chars: 0, shell: { count: 0, chars: 0 } },
     sourceOverLimit: { count: 0, chars: 0 },
-    confirmationReads: { count: 0, chars: 0 },
-    repeatReads: { count: 0, chars: 0 },
+    confirmationReads: { count: 0, chars: 0, shell: { count: 0, chars: 0 } },
+    repeatReads: { count: 0, chars: 0, shell: { count: 0, chars: 0 } },
     largest: [],
   };
   for (const file of files) analyse(await loadCalls(file), { since, maxLines: options.maxLines }, totals);
