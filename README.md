@@ -5,11 +5,27 @@
 [![test-install](https://github.com/vannt-dev/token-efficient-work/actions/workflows/test-install.yml/badge.svg)](https://github.com/vannt-dev/token-efficient-work/actions/workflows/test-install.yml)
 ![Compatible with](https://img.shields.io/badge/compatible-Claude%20Code%20%7C%20Codex%20%7C%20Copilot%20CLI%20%7C%20Gemini%20CLI%20%7C%20Cursor%20%7C%20Aider-blue)
 
-A skill + global instruction hooks that stop coding agents (Claude Code,
-Codex, Copilot CLI, Gemini CLI, Cursor, Aider) from burning tokens on
+Five short rules that stop coding agents from spending tokens on
 redundant work: re-reading a file after a successful edit, reading a
 whole file for a two-line change, adding unrequested "just to be safe"
-checks, or writing over-long explanations.
+checks, or writing over-long explanations. They ship as a rule block for
+each agent's instructions file and as a skill with the detail behind
+each rule.
+
+Where it pays off, as measured in [EVIDENCE.md](EVIDENCE.md):
+
+- **Codex CLI:** the rule block in `AGENTS.md` used fewer tokens and
+  fewer tool calls than no guidance on most of the six test tasks.
+- **Claude Code (Opus 5.5):** no measurable saving from the rules, because
+  the model already searches first and reads ranges. Here the useful
+  parts are the tools that find and stop waste in your own sessions: a
+  read report over your transcripts, an opt-in guard against whole-file
+  reads of long source files, and an opt-in cost band above the prompt.
+- **Copilot CLI, Gemini CLI, Cursor, Aider:** the installers write the
+  same rules; not measured.
+
+It does not shrink command output. For that, [rtk](https://github.com/rtk-ai/rtk)
+works alongside it.
 
 **[→ Landing page](https://vannt-dev.github.io/token-efficient-work/)**
 — the pitch, a real before/after transcript, and the install command.
