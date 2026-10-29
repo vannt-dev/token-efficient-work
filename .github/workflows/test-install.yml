@@ -87,6 +87,43 @@ jobs:
           done
           echo "OK: bash uninstall test passed"
 
+      - name: --check reports missing, current and outdated, and writes nothing
+        run: |
+          set -e
+          TARGET="$RUNNER_TEMP/check"
+          mkdir -p "$TARGET"
+          if bash install-project.sh --check "$TARGET"; then echo "EMPTY PROJECT PASSED"; exit 1; fi
+          [ -z "$(ls -A "$TARGET")" ] || { echo "CHECK WROTE TO AN EMPTY PROJECT"; exit 1; }
+
+          bash install-project.sh "$TARGET"
+          cp -r "$TARGET" "$RUNNER_TEMP/check.before"
+          bash install-project.sh "$TARGET" --check || { echo "FRESH INSTALL NOT CURRENT"; exit 1; }
+          diff -r "$RUNNER_TEMP/check.before" "$TARGET" || { echo "CHECK CHANGED FILES"; exit 1; }
+
+          sed -i 's/^3\. .*/3. STALE RULE/' "$TARGET/CLAUDE.md"
+          echo "local edit" >> "$TARGET/.agents/skills/token-efficient-work/SKILL.md"
+          cp -r "$TARGET" "$RUNNER_TEMP/check.stale"
+          if bash install-project.sh --check "$TARGET" > "$RUNNER_TEMP/check.out"; then
+            echo "STALE PROJECT PASSED"; exit 1
+          fi
+          grep -qx "outdated -> $TARGET/CLAUDE.md" "$RUNNER_TEMP/check.out" || { echo "STALE BLOCK NOT FLAGGED"; exit 1; }
+          grep -qx "outdated -> $TARGET/.agents/skills/token-efficient-work/SKILL.md" "$RUNNER_TEMP/check.out" \
+            || { echo "CHANGED SKILL NOT FLAGGED"; exit 1; }
+          grep -qx "current -> $TARGET/AGENTS.md" "$RUNNER_TEMP/check.out" || { echo "CURRENT FILE NOT REPORTED"; exit 1; }
+          diff -r "$RUNNER_TEMP/check.stale" "$TARGET" || { echo "CHECK CHANGED FILES"; exit 1; }
+
+          export HOME="$RUNNER_TEMP/checkhome"
+          mkdir -p "$HOME"
+          if bash install.sh --check; then echo "EMPTY HOME PASSED"; exit 1; fi
+          [ -z "$(ls -A "$HOME")" ] || { echo "CHECK WROTE TO AN EMPTY HOME"; exit 1; }
+          bash install.sh
+          bash install.sh --check || { echo "FRESH USER INSTALL NOT CURRENT"; exit 1; }
+          sed -i 's/^3\. .*/3. STALE RULE/' "$HOME/.gemini/GEMINI.md"
+          if bash install.sh --check > "$RUNNER_TEMP/check.out"; then echo "STALE HOME PASSED"; exit 1; fi
+          grep -qx "outdated -> $HOME/.gemini/GEMINI.md" "$RUNNER_TEMP/check.out" || { echo "STALE BLOCK NOT FLAGGED"; exit 1; }
+          if bash install.sh --chek; then echo "UNKNOWN OPTION ACCEPTED"; exit 1; fi
+          echo "OK: bash --check test passed"
+
   powershell:
     runs-on: windows-latest
     steps:
@@ -176,3 +213,52 @@ jobs:
             if (Test-Path (Join-Path $UserHome $p)) { Write-Error "LEFT BEHIND: $p"; exit 1 }
           }
           Write-Host "OK: powershell uninstall test passed"
+
+      - name: -Check reports missing, current and outdated, and writes nothing
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          # Hash every file and list every directory, so a new empty directory counts as a change.
+          function Get-Tree([string]$Dir) {
+            (Get-ChildItem -Recurse -Force $Dir | ForEach-Object {
+              if ($_.PSIsContainer) { $_.FullName } else { $_.FullName + "=" + (Get-FileHash $_.FullName).Hash }
+            }) -join ","
+          }
+          $Target = Join-Path $env:RUNNER_TEMP "check"
+          New-Item -ItemType Directory -Force -Path $Target | Out-Null
+          .\install-project.ps1 -TargetDir $Target -Check
+          if ($LASTEXITCODE -ne 1) { Write-Error "EMPTY PROJECT: exit $LASTEXITCODE, want 1"; exit 1 }
+          if (Get-ChildItem -Force $Target) { Write-Error "CHECK WROTE TO AN EMPTY PROJECT"; exit 1 }
+
+          .\install-project.ps1 -TargetDir $Target
+          $Before = Get-Tree $Target
+          .\install-project.ps1 -TargetDir $Target -Check
+          if ($LASTEXITCODE -ne 0) { Write-Error "FRESH INSTALL NOT CURRENT: exit $LASTEXITCODE"; exit 1 }
+          if ((Get-Tree $Target) -ne $Before) { Write-Error "CHECK CHANGED FILES"; exit 1 }
+
+          $Claude = Join-Path $Target "CLAUDE.md"
+          [IO.File]::WriteAllText($Claude, ([IO.File]::ReadAllText($Claude) -replace "(?m)^3\. .*$", "3. STALE RULE"))
+          Add-Content -Path (Join-Path $Target ".agents\skills\token-efficient-work\SKILL.md") -Value "local edit"
+          $Before = Get-Tree $Target
+          $Out = (.\install-project.ps1 -TargetDir $Target -Check 6>&1 | ForEach-Object { "$_" }) -join "`n"
+          if ($LASTEXITCODE -ne 1) { Write-Error "STALE PROJECT: exit $LASTEXITCODE, want 1"; exit 1 }
+          if (-not $Out.Contains("outdated -> $Claude")) { Write-Error "STALE BLOCK NOT FLAGGED"; exit 1 }
+          if (-not $Out.Contains("outdated -> $Target\.agents\skills\token-efficient-work\SKILL.md")) { Write-Error "CHANGED SKILL NOT FLAGGED"; exit 1 }
+          if (-not $Out.Contains("current -> $Target\AGENTS.md")) { Write-Error "CURRENT FILE NOT REPORTED"; exit 1 }
+          if ((Get-Tree $Target) -ne $Before) { Write-Error "CHECK CHANGED FILES"; exit 1 }
+
+          $UserHome = Join-Path $env:RUNNER_TEMP "checkhome"
+          New-Item -ItemType Directory -Force -Path $UserHome | Out-Null
+          .\install.ps1 -UserHome $UserHome -Check
+          if ($LASTEXITCODE -ne 1) { Write-Error "EMPTY HOME: exit $LASTEXITCODE, want 1"; exit 1 }
+          if (Get-ChildItem -Force $UserHome) { Write-Error "CHECK WROTE TO AN EMPTY HOME"; exit 1 }
+          .\install.ps1 -UserHome $UserHome
+          .\install.ps1 -UserHome $UserHome -Check
+          if ($LASTEXITCODE -ne 0) { Write-Error "FRESH USER INSTALL NOT CURRENT: exit $LASTEXITCODE"; exit 1 }
+          $Gemini = Join-Path $UserHome ".gemini\GEMINI.md"
+          [IO.File]::WriteAllText($Gemini, ([IO.File]::ReadAllText($Gemini) -replace "(?m)^3\. .*$", "3. STALE RULE"))
+          $Out = (.\install.ps1 -UserHome $UserHome -Check 6>&1 | ForEach-Object { "$_" }) -join "`n"
+          if ($LASTEXITCODE -ne 1) { Write-Error "STALE HOME: exit $LASTEXITCODE, want 1"; exit 1 }
+          if (-not $Out.Contains("outdated -> $Gemini")) { Write-Error "STALE BLOCK NOT FLAGGED"; exit 1 }
+          Write-Host "OK: powershell -Check test passed"
+          exit 0
