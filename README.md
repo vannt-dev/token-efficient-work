@@ -130,6 +130,12 @@ Writes into your user dotfiles (`~/.claude`, `~/.agents`, `~/.codex`,
 `~/.gemini`, `~/.copilot`) — applies everywhere you use these tools,
 nothing to commit.
 
+To see whether this machine is up to date without changing anything, run
+`bash install.sh --check` (or `.\install.ps1 -Check`). It prints
+`current`, `outdated` or `missing` for each skill copy and instructions
+file, and exits 0 only when everything is current: `outdated` means an
+older rule block or a skill copy that differs from this clone's.
+
 To undo it, run `bash uninstall.sh` (or `.\uninstall.ps1`) from the same
 clone. It deletes the two skill copies and, in each instructions file, only
 the rule block from its heading to the `<!-- /token-efficient-work -->` end
@@ -171,6 +177,15 @@ re-run on an up-to-date project leaves every file byte-identical. The
 remote installer fetches the skill and snippet from the release tag it
 belongs to; set `TEW_REF` (e.g. `TEW_REF=master`) to use another tag
 or branch.
+
+To check a project without changing it — in CI, for example — pass
+`--check`: `bash install-project.sh --check [target-dir]` from a clone,
+or end the `curl` command above with `| bash -s -- --check`. From a
+PowerShell clone it is `.\install-project.ps1 -Check`. Each file is
+reported as `current`, `outdated` (an older rule block, a skill copy or
+Cursor rule that differs from the release, or an `.aider.conf.yml` that
+does not list `CONVENTIONS.md`) or `missing`; the exit code is 0 only
+when all are current, 1 otherwise.
 
 ## Does this actually save tokens?
 
