@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>token-efficient-work</title>
-<meta name="description" content="A portable skill and config hook that stops AI coding agents from re-reading files, re-checking edits that succeeded and over-explaining. For Claude Code, Codex, Copilot CLI, Gemini CLI, Cursor and Aider.">
+<meta name="description" content="Five rules, plus a skill, that stop AI coding agents from re-reading files, re-checking edits that succeeded and over-explaining. Measured on Codex CLI; for Claude Code, a read report, read guard and cost band.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root {
@@ -377,9 +377,9 @@
 
 <section class="hero">
   <div class="wrap">
-    <p class="eyebrow mono">A rule for Claude Code · Codex · Copilot CLI · Gemini CLI · Cursor · Aider</p>
+    <p class="eyebrow mono">Measured on Codex CLI · also installs for Claude Code · Copilot CLI · Gemini CLI · Cursor · Aider</p>
     <h1>Your agent already knows the file didn't change. Stop making it check.</h1>
-    <p class="lede">token-efficient-work is a portable skill + config hook that stops coding agents from re-reading files they just edited, opening whole files for two-line changes, running unrequested "just to be safe" checks, and over-explaining what the diff already shows.</p>
+    <p class="lede">token-efficient-work is five short rules, plus a skill with the detail behind them, that stop coding agents from re-reading files they just edited, opening whole files for two-line changes, running unrequested "just to be safe" checks, and over-explaining what the diff already shows. On Codex CLI the rules used fewer tokens on most measured tasks; for Claude Code, which already reads carefully, it adds a read report, a read guard and a cost band to find and stop the waste that is left.</p>
 
     <div class="install" data-install>
       <div class="tabs" role="tablist" aria-label="Install command shell">
