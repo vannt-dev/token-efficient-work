@@ -24,12 +24,12 @@ CHECK=0
 TARGET=""
 for arg in "$@"; do
   case "$arg" in
-    --check) CHECK=1 ;;
-    -*)
-      echo "unknown option: $arg (usage: install-project.sh [--check] [target-dir])" >&2
-      exit 2
-      ;;
-    *) TARGET="$arg" ;;
+  --check) CHECK=1 ;;
+  -*)
+    echo "unknown option: $arg (usage: install-project.sh [--check] [target-dir])" >&2
+    exit 2
+    ;;
+  *) TARGET="$arg" ;;
   esac
 done
 TARGET="${TARGET:-$(pwd)}"

@@ -11,11 +11,11 @@ END_MARKER="<!-- /token-efficient-work -->"
 CHECK=0
 for arg in "$@"; do
   case "$arg" in
-    --check) CHECK=1 ;;
-    *)
-      echo "unknown option: $arg (usage: install.sh [--check])" >&2
-      exit 2
-      ;;
+  --check) CHECK=1 ;;
+  *)
+    echo "unknown option: $arg (usage: install.sh [--check])" >&2
+    exit 2
+    ;;
   esac
 done
 STATUS=0
