@@ -10,11 +10,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+permissions:
+  contents: read
+
 jobs:
   bash:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install twice and verify (idempotency + expected files)
         run: |
           set -e
@@ -57,7 +62,9 @@ jobs:
             grep -qF '<!-- /token-efficient-work -->' "$TARGET/$f" || { echo "NOT UPGRADED: $f"; exit 1; }
           done
           ! grep -q STALE "$TARGET/CLAUDE.md" || { echo "STALE RULE KEPT"; exit 1; }
-          grep -qx 'user para' "$TARGET/AGENTS.md" && grep -qx 'keep me' "$TARGET/CLAUDE.md" || { echo "USER CONTENT LOST"; exit 1; }
+          if ! grep -qx 'user para' "$TARGET/AGENTS.md" || ! grep -qx 'keep me' "$TARGET/CLAUDE.md"; then
+            echo "USER CONTENT LOST"; exit 1
+          fi
 
           cp -r "$TARGET" "$RUNNER_TEMP/before"
           bash install-project.sh "$TARGET"
@@ -127,7 +134,9 @@ jobs:
   powershell:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install twice and verify (idempotency + expected files)
         shell: pwsh
         run: |
