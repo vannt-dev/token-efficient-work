@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.1](https://github.com/vannt-dev/token-efficient-work/compare/v0.7.0...v0.7.1) (2026-11-01)
+
+
+### Documentation
+
+* add an overview diagram to the README ([b844990](https://github.com/vannt-dev/token-efficient-work/commit/b8449909f2fcbf5ebb13753b10eaa75b8e16acce))
+* add an overview diagram to the README ([1e085a1](https://github.com/vannt-dev/token-efficient-work/commit/1e085a17240b8391579d8d81c3dfa1415d1d10d1))
+
 ## [0.7.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.6.0...v0.7.0) (2026-10-29)
 
 
