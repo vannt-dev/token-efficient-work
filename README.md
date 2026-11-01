@@ -12,6 +12,31 @@ checks, or writing over-long explanations. They ship as a rule block for
 each agent's instructions file and as a skill with the detail behind
 each rule.
 
+How the rules reach your agents, and how you measure the reads:
+
+```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 300}}}%%
+flowchart TB
+  subgraph rules["Five rules"]
+    direction LR
+    block["Rule block, about 70 words<br/>read ranges, no re-read after an edit,<br/>checks by risk, reuse facts, short answers"]
+    skill["Skill<br/>SKILL.md, the detail<br/>behind each rule"]
+    block ~~~ skill
+  end
+  plugin["Claude Code plugins: the skill,<br/>optional read guard, cost band"]
+  user["install.sh or install.ps1<br/>for you, in every project"]
+  proj["install-project.sh or .ps1<br/>committed for your team"]
+  agents["Your coding agents<br/>Claude Code, Codex, Copilot CLI,<br/>Gemini CLI, Cursor, Aider"]
+  report["read-report.mjs: whole-file, after-edit<br/>and repeated reads in Claude Code"]
+  rules --> plugin
+  rules --> user
+  rules --> proj
+  plugin --> agents
+  user --> agents
+  proj --> agents
+  agents --> report
+```
+
 Where it pays off, as measured in [EVIDENCE.md](EVIDENCE.md):
 
 - **Codex CLI:** the rule block in `AGENTS.md` used fewer tokens and
