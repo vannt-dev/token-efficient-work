@@ -46,7 +46,7 @@ long sessions, shell-heavy work.
 rules is the five-line snippet in `CLAUDE.md` (the third column of the 23/10 run). The new tasks
 stay in `evals/`, so a later model or description can be measured against them.
 
-## Codex CLI A/B, 6 tasks × 2 runs (2026-10-25)
+## Codex CLI A/B, 6 tasks × 3 runs (2026-10-25, third runs 2026-11-23)
 
 The same six tasks on Codex CLI 0.164.0 (gpt-5.6-terra, medium effort, Windows), through
 [`scripts/codex-ab.mjs`](scripts/codex-ab.mjs). Three arms: no guidance; the skill in the
@@ -57,21 +57,22 @@ home folder.
 
 | ratio to the baseline (geometric mean across tasks) | input tokens | uncached input | output tokens | tool calls |
 |---|--:|--:|--:|--:|
-| skill | 1.09 | 1.04 | 1.10 | 1.13 |
-| rules in `AGENTS.md` | 0.83 | 0.72 | 0.83 | 0.84 |
+| skill | 1.02 | 0.90 | 1.03 | 0.99 |
+| rules in `AGENTS.md` | 0.72 | 0.74 | 0.74 | 0.68 |
 
 - **On Codex the rules help; the skill does not.** The rules arm used fewer input tokens in four
-  tasks, matched the baseline in `rename-symbol`, and did every task. It used more only in
-  `answer-from-config`, where one baseline run answered without reading the file (below). The
-  skill was read in every run, and reading it cost about what it saved.
+  tasks, about the same as the baseline in `rename-symbol` and `answer-from-config` (where one
+  baseline run answered without reading the file, below), and did every task. The skill was read
+  in every run, and reading it cost about what it saved.
 - **One baseline run answered without looking.** Asked for the timeout in `config.py`, it replied
   "30" with no tool call; the file says 45. Both guided arms read the file every time.
-- **Two runs per arm.** The direction holds across tasks, but the size is rough.
+- **Three runs per arm** (medians). The third runs kept the direction and made the rules
+  arm's lead larger; the size is still rough.
 
 Reproduce (uses your Codex plan; the work folder must not sit under `%TEMP%` on Windows):
 
 ```bash
-node scripts/codex-ab.mjs --work <folder> --runs 2
+node scripts/codex-ab.mjs --work <folder> --runs 3
 node scripts/codex-ab.mjs --summary <folder>/codex-ab.json
 ```
 
