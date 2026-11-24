@@ -81,6 +81,10 @@ works alongside it.
   many repeated an earlier read, counting `cat`, `head`, `sed -n` and
   `Get-Content` reads through the shell as well. See
   [Measure your own sessions](#measure-your-own-sessions).
+- `scripts/learn.mjs` — finds the commands that keep failing in a
+  project and what worked instead, across your Claude Code sessions,
+  and can keep them in `CLAUDE.local.md`. See
+  [Learn the commands that work](#learn-the-commands-that-work).
 - `uninstall.sh` / `uninstall.ps1` — removes what `install.sh` /
   `install.ps1` wrote: the two skill copies and the marked rule block in
   each global instructions file. Your own text in those files stays.
@@ -296,6 +300,74 @@ so read it as where the cost sits, not as a saving. `--project`,
 If the source-code line is large, the opt-in
 [read guard](hooks/claude-code/README.md) turns rule 1 into a gate for
 Claude Code.
+
+## Learn the commands that work
+
+An agent that runs `pytest` in a project where only `python -m pytest`
+works pays for the error, then for the fix, in every new session.
+`scripts/learn.mjs` reads the same transcripts as the read report and
+lists the failed command and the working variant that followed it, when
+the same pair turns up in 3 or more sessions. Run it from the project's
+folder:
+
+```bash
+node /path/to/token-efficient-work/scripts/learn.mjs
+```
+
+What it prints for the three made-up sessions under
+`tests/fixtures/learn` (`--dir tests/fixtures/learn --project demo-project`):
+
+```text
+sessions   times   failed -> worked
+       3       3   pytest  ->  python -m pytest
+       3       3   src/config.ts  ->  app/config.ts   (file path)
+```
+
+Add `--write` to keep them in `CLAUDE.local.md` in the current folder,
+which Claude Code loads into every session in the project:
+
+```markdown
+<!-- tew-learn:start -->
+## Learned from past sessions
+
+In this project:
+- use `python -m pytest`, not `pytest`
+- the path is `app/config.ts`, not `src/config.ts`
+<!-- tew-learn:end -->
+```
+
+Each run replaces that block in place and leaves the rest of the file
+alone; a run that finds nothing removes the block. `CLAUDE.local.md` is
+your own file, so keep it out of git. `--file PATH` writes somewhere else.
+
+What counts as a pair:
+
+- **A command:** a Bash or PowerShell call failed, and one of the next
+  three calls of the same tool worked and differs from it in one part
+  that shares some text with the failed part (`npm test` then
+  `npm run test:unit`, but not `npm test` then `git status`). Only
+  the changed part is kept, and `2>&1` and filters such as `| tail -5`
+  are ignored, so the same fix with other arguments, or after a
+  `cd dir &&`, counts as one pair.
+- **A path:** a Read failed because the file does not exist, and one of
+  the next three Reads, of a file with the same name, worked.
+- **Not a pair:** a file was edited in between (the edit was the fix),
+  the command was retried unchanged, or the call was stopped by a
+  permission rule or by you. A hook that refuses a command does count.
+
+A pair is counted once per session, subagents included. It is listed
+but not written when the failing form also worked, unchanged, in some
+session: then the failure came from something else, such as a failing
+test. Secrets are replaced with `[REDACTED]` before anything is
+compared or printed (key prefixes such as `ghp_` and `sk-`, Bearer
+values, passwords in URLs, variables and options named like a token,
+key or password), and a rule that held one is never written. No model
+is called.
+
+`--min-sessions N` changes the threshold, `--project TEXT` picks other
+projects by part of their transcript folder name, and `--days`,
+`--json` and `--help` work as in the read report. It reads Claude Code
+transcripts only, not Codex sessions.
 
 ## Updating the rule
 
