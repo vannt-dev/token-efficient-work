@@ -5,8 +5,8 @@
 // Registered on PostToolUseFailure, this hook counts failures of the same command in a session.
 // When the count reaches TEW_FAIL_LOOP_LIMIT (default 3), and again at every further multiple of
 // it, it adds one line of context next to the error: stop retrying, change something. Registered
-// on PostToolUse too, it clears the count when a command succeeds. A different failing command
-// starts the count again. No model call; only a hash of the last failing command and its count
+// on PostToolUse too, it clears the count when that same command succeeds or a file is edited
+// (the next run is then a real new try). A different failing command starts the count again. No model call; only a hash of the last failing command and its count
 // are kept, in one small file per session.
 //
 // It is a cost guard, not a security guard: anything it cannot judge (bad input, no session id,
@@ -19,6 +19,7 @@ import { join } from 'node:path';
 
 const DEFAULT_LIMIT = 3;
 const SHELL_TOOLS = new Set(['Bash', 'PowerShell']);
+const EDIT_TOOLS = new Set(['Edit', 'MultiEdit', 'Write', 'NotebookEdit']);
 
 function limit() {
   const value = Number.parseInt(process.env.TEW_FAIL_LOOP_LIMIT ?? '', 10);
@@ -46,28 +47,33 @@ function decide(raw) {
   } catch {
     return null;
   }
-  if (!SHELL_TOOLS.has(payload?.tool_name)) return null;
-  const sessionId = typeof payload.session_id === 'string' ? payload.session_id : '';
+  const sessionId = typeof payload?.session_id === 'string' ? payload.session_id : '';
+  if (!sessionId) return null;
+  const { dir, path } = stateFile(sessionId);
+  if (payload.hook_event_name === 'PostToolUse' && EDIT_TOOLS.has(payload.tool_name)) {
+    rmSync(path, { force: true });
+    return null;
+  }
+  if (!SHELL_TOOLS.has(payload.tool_name)) return null;
   const command = typeof payload.tool_input?.command === 'string' ? payload.tool_input.command : '';
   const normalized = command.trim().replace(/\s+/g, ' ');
-  if (!sessionId || !normalized) return null;
-  const { dir, path } = stateFile(sessionId);
+  if (!normalized) return null;
+  const hash = createHash('sha256').update(normalized).digest('hex').slice(0, 16);
+  const previous = readState(path);
 
   if (payload.hook_event_name === 'PostToolUse') {
-    rmSync(path, { force: true });
+    if (previous?.h === hash) rmSync(path, { force: true });
     return null;
   }
   if (payload.hook_event_name !== 'PostToolUseFailure' || payload.is_interrupt === true) return null;
 
-  const hash = createHash('sha256').update(normalized).digest('hex').slice(0, 16);
-  const previous = readState(path);
   const count = previous?.h === hash ? previous.n + 1 : 1;
   mkdirSync(dir, { recursive: true });
   writeFileSync(path, JSON.stringify({ h: hash, n: count }));
   const max = limit();
   if (count % max !== 0) return null;
   return (
-    `token-efficient-work: this same command has failed ${count} times in a row. Stop retrying ` +
+    `token-efficient-work: this same command has failed ${count} times with no edit in between. Stop retrying ` +
     'it unchanged: read the error, check the command (path, flags, quoting, working directory), ' +
     'try a different approach, or ask the user.'
   );

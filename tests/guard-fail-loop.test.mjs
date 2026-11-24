@@ -49,7 +49,7 @@ test('the third failure of the same command adds one line of context, the first 
   const out = run(failed('npm run tset'));
   assert.equal(out.hookSpecificOutput.hookEventName, 'PostToolUseFailure');
   const line = out.hookSpecificOutput.additionalContext;
-  assert.match(line, /failed 3 times in a row/);
+  assert.match(line, /failed 3 times with no edit in between/);
   assert.match(line, /different approach/);
   assert.ok(!line.includes('\n'), 'one line');
 });
@@ -83,6 +83,31 @@ test('a command that succeeds clears the count and prints nothing', () => {
   assert.deepEqual(readdirSync(dir), []);
   assert.equal(run(failed('npm test')), null);
   assert.equal(run(failed('npm test')), null);
+});
+
+test('another command succeeding in between does not clear the count', () => {
+  run(failed('npm test'));
+  assert.equal(run(succeeded('cat npm-debug.log')), null);
+  run(failed('npm test'));
+  assert.equal(run(succeeded('ls')), null);
+  assert.notEqual(run(failed('npm test')), null);
+});
+
+test('a file edit clears the count, so a fix-and-rerun is a new try', () => {
+  run(failed('npm test'));
+  run(failed('npm test'));
+  for (const tool of ['Edit', 'MultiEdit', 'Write', 'NotebookEdit']) {
+    assert.equal(run(succeeded('', { tool_name: tool, tool_input: { file_path: 'a.js' } })), null);
+  }
+  assert.deepEqual(readdirSync(dir), []);
+  assert.equal(run(failed('npm test')), null);
+  assert.equal(run(failed('npm test')), null);
+  assert.notEqual(run(failed('npm test')), null);
+});
+
+test('an edit with no count kept writes no state', () => {
+  assert.equal(run(succeeded('', { tool_name: 'Edit', tool_input: { file_path: 'a.js' } })), null);
+  assert.deepEqual(readdirSync(dir), []);
 });
 
 test('a success with no count kept writes no state', () => {

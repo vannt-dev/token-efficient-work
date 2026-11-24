@@ -58,13 +58,14 @@ test('the read guard plugin runs the guard script that the tests cover', () => {
   assert.ok(existsSync(join(root, source, 'guard-full-read.mjs')));
 });
 
-test('the failure-loop plugin runs its script after shell calls that fail and that succeed', () => {
+test('the failure-loop plugin runs after failed shell calls, and after successes and edits', () => {
   const source = byName['token-efficient-work-fail-loop'].source;
   const manifest = json(source, '.claude-plugin', 'plugin.json');
   const hooks = json(source, manifest.hooks).hooks;
   assert.deepEqual(Object.keys(hooks).sort(), ['PostToolUse', 'PostToolUseFailure']);
+  assert.equal(hooks.PostToolUseFailure[0].matcher, 'Bash|PowerShell');
+  assert.equal(hooks.PostToolUse[0].matcher, 'Bash|PowerShell|Edit|MultiEdit|Write|NotebookEdit');
   for (const [entry] of Object.values(hooks)) {
-    assert.equal(entry.matcher, 'Bash|PowerShell');
     assert.equal(entry.hooks[0].command, 'node "${CLAUDE_PLUGIN_ROOT}/guard-fail-loop.mjs"');
   }
   assert.ok(existsSync(join(root, source, 'guard-fail-loop.mjs')));

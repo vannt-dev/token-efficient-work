@@ -1,7 +1,7 @@
 {
   "name": "token-efficient-work-fail-loop",
   "version": "0.7.1",
-  "description": "Optional hook: when the same shell command fails 3 times in a row, tells the agent to stop retrying it.",
+  "description": "Optional hook: when the same shell command fails 3 times with no edit in between, tells the agent to stop retrying it.",
   "author": {
     "name": "vannt-dev",
     "url": "https://github.com/vannt-dev"

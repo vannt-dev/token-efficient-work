@@ -89,7 +89,7 @@ works alongside it.
   the scripts above; see [hooks/claude-code/README.md](hooks/claude-code/README.md).
 - `hooks/claude-code-fail-loop/guard-fail-loop.mjs` — an opt-in Claude
   Code hook that tells the agent to stop retrying when the same shell
-  command has failed 3 times in a row. Not installed by the scripts
+  command has failed 3 times with no edit in between. Not installed by the scripts
   above; see [hooks/claude-code-fail-loop/README.md](hooks/claude-code-fail-loop/README.md).
 - `hooks/claude-code-band/` — an opt-in Claude Code band above the
   prompt with the task's cost, tokens and repeated reads; see
@@ -136,7 +136,7 @@ its file reads repeated an earlier read or followed an edit.
 
 The [failure-loop guard](hooks/claude-code-fail-loop/README.md) is a
 fourth, optional plugin: when the same shell command has failed 3 times
-in a row, it adds one line telling the agent to stop retrying it and try
+with no file edit in between, it adds one line telling the agent to stop retrying it and try
 something else. It never blocks a call and calls no model.
 
 ```text
