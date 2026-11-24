@@ -1,5 +1,5 @@
 {
-  "description": "Say once when the same shell command has failed 3 times in a row (token-efficient-work).",
+  "description": "Tell the agent to stop retrying when the same shell command has failed 3 times in a row (token-efficient-work).",
   "hooks": {
     "PostToolUseFailure": [
       {

@@ -20,7 +20,7 @@
     {
       "name": "token-efficient-work-fail-loop",
       "source": "./hooks/claude-code-fail-loop",
-      "description": "Optional. A hook that says once when the same shell command has failed 3 times in a row.",
+      "description": "Optional. A hook that tells the agent to stop retrying a shell command that failed 3 times in a row.",
       "category": "productivity"
     },
     {

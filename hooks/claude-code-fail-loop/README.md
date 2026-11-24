@@ -82,6 +82,8 @@ entries.
 - State is one small file per session under the system temp folder (`tew-fail-loop/`): a hash of
   the last failing command and how many times it failed. A success deletes it.
   `TEW_FAIL_LOOP_STATE_DIR` moves it.
+- It sees only shell calls. If the agent edits a file between two runs of the same failing test,
+  the hook does not know, so a fix-and-rerun cycle that fails 3 times also gets the line.
 - It runs `node` once after every shell call, which adds about a tenth of a second to each.
 - It is a cost guard, not a security control: bad input, no session id, a state file it cannot
   write, or Node not being installed all mean it stays quiet.
