@@ -1,0 +1,29 @@
+{
+  "description": "Say once when the same shell command has failed 3 times in a row (token-efficient-work).",
+  "hooks": {
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/guard-fail-loop.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/guard-fail-loop.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
