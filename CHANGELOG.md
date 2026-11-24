@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.7.1...v0.8.0) (2026-11-24)
+
+
+### Features
+
+* opt-in hook that stops retry loops on a failing shell command ([#49](https://github.com/vannt-dev/token-efficient-work/issues/49)) ([99e1fdb](https://github.com/vannt-dev/token-efficient-work/commit/99e1fdb45b7e4ca7ba60a48545d6669b711f5625))
+* plugin/ folder for the Claude plugin directory ([#45](https://github.com/vannt-dev/token-efficient-work/issues/45)) ([cb02e7a](https://github.com/vannt-dev/token-efficient-work/commit/cb02e7a222c02977e22719fe5ef30e5e93495e36))
+
+
+### Documentation
+
+* **evidence:** three runs per arm in the Codex A/B ([#48](https://github.com/vannt-dev/token-efficient-work/issues/48)) ([3996531](https://github.com/vannt-dev/token-efficient-work/commit/39965319e333c992a46c5e6ce0cab4757736f9c4))
+
 ## [0.7.1](https://github.com/vannt-dev/token-efficient-work/compare/v0.7.0...v0.7.1) (2026-11-01)
 
 
