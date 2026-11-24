@@ -1,0 +1,19 @@
+{
+  "name": "token-efficient-work-fail-loop",
+  "version": "0.7.1",
+  "description": "Optional hook: when the same shell command fails 3 times with no edit in between, tells the agent to stop retrying it.",
+  "author": {
+    "name": "vannt-dev",
+    "url": "https://github.com/vannt-dev"
+  },
+  "homepage": "https://github.com/vannt-dev/token-efficient-work/blob/master/hooks/claude-code-fail-loop/README.md",
+  "repository": "https://github.com/vannt-dev/token-efficient-work",
+  "license": "MIT",
+  "keywords": [
+    "tokens",
+    "cost",
+    "hook",
+    "bash"
+  ],
+  "hooks": "./hooks.json"
+}

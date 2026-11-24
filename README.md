@@ -23,7 +23,7 @@ flowchart TB
     skill["Skill<br/>SKILL.md, the detail<br/>behind each rule"]
     block ~~~ skill
   end
-  plugin["Claude Code plugins: the skill,<br/>optional read guard, cost band"]
+  plugin["Claude Code plugins: the skill,<br/>optional read guard, failure-loop<br/>guard, cost band"]
   user["install.sh or install.ps1<br/>for you, in every project"]
   proj["install-project.sh or .ps1<br/>committed for your team"]
   agents["Your coding agents<br/>Claude Code, Codex, Copilot CLI,<br/>Gemini CLI, Cursor, Aider"]
@@ -87,12 +87,16 @@ works alongside it.
 - `hooks/claude-code/guard-full-read.mjs` — an opt-in Claude Code hook
   that refuses a whole-file read of a long source file. Not installed by
   the scripts above; see [hooks/claude-code/README.md](hooks/claude-code/README.md).
+- `hooks/claude-code-fail-loop/guard-fail-loop.mjs` — an opt-in Claude
+  Code hook that tells the agent to stop retrying when the same shell
+  command has failed 3 times with no edit in between. Not installed by the scripts
+  above; see [hooks/claude-code-fail-loop/README.md](hooks/claude-code-fail-loop/README.md).
 - `hooks/claude-code-band/` — an opt-in Claude Code band above the
   prompt with the task's cost, tokens and repeated reads; see
   [hooks/claude-code-band/README.md](hooks/claude-code-band/README.md).
 - `.claude-plugin/marketplace.json` — a Claude Code plugin marketplace
-  with three plugins: the skill, and the read guard and the cost band as
-  separate, optional plugins. See [Install in Claude Code](#install-in-claude-code-plugin).
+  with four plugins: the skill, and the read guard, the failure-loop
+  guard and the cost band as separate, optional plugins. See [Install in Claude Code](#install-in-claude-code-plugin).
 - `docs/index.html` — the landing page, served via GitHub Pages.
 
 ## Install in Claude Code (plugin)
@@ -128,6 +132,15 @@ its file reads repeated an earlier read or followed an edit.
 
 ```text
 /plugin install token-efficient-work-band@token-efficient-work
+```
+
+The [failure-loop guard](hooks/claude-code-fail-loop/README.md) is a
+fourth, optional plugin: when the same shell command has failed 3 times
+with no file edit in between, it adds one line telling the agent to stop retrying it and try
+something else. It never blocks a call and calls no model.
+
+```text
+/plugin install token-efficient-work-fail-loop@token-efficient-work
 ```
 
 `/plugin uninstall <name>@token-efficient-work` removes any of them. The

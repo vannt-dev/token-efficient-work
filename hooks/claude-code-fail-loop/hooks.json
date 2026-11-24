@@ -1,0 +1,29 @@
+{
+  "description": "Tell the agent to stop retrying when the same shell command has failed 3 times with no edit in between (token-efficient-work).",
+  "hooks": {
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/guard-fail-loop.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Edit|MultiEdit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/guard-fail-loop.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

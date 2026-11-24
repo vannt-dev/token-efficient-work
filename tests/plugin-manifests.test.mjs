@@ -4,8 +4,9 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-// The Claude Code marketplace lists three plugins from this repo: the skill (repo root), the
-// opt-in read guard (hooks/claude-code) and the opt-in cost band (hooks/claude-code-band).
+// The Claude Code marketplace lists four plugins from this repo: the skill (repo root), the
+// opt-in read guard (hooks/claude-code), the opt-in failure-loop guard (hooks/claude-code-fail-loop)
+// and the opt-in cost band (hooks/claude-code-band).
 // These checks keep the manifests and files in step.
 const root = fileURLToPath(new URL('..', import.meta.url));
 const json = (...parts) => JSON.parse(readFileSync(join(root, ...parts), 'utf8'));
@@ -18,6 +19,7 @@ test('every marketplace entry points at a plugin with the same name and the rele
   assert.deepEqual(Object.keys(byName).sort(), [
     'token-efficient-work',
     'token-efficient-work-band',
+    'token-efficient-work-fail-loop',
     'token-efficient-work-read-guard',
   ]);
   for (const entry of marketplace.plugins) {
@@ -54,6 +56,19 @@ test('the read guard plugin runs the guard script that the tests cover', () => {
   assert.equal(entry.matcher, 'Read');
   assert.equal(entry.hooks[0].command, 'node "${CLAUDE_PLUGIN_ROOT}/guard-full-read.mjs"');
   assert.ok(existsSync(join(root, source, 'guard-full-read.mjs')));
+});
+
+test('the failure-loop plugin runs after failed shell calls, and after successes and edits', () => {
+  const source = byName['token-efficient-work-fail-loop'].source;
+  const manifest = json(source, '.claude-plugin', 'plugin.json');
+  const hooks = json(source, manifest.hooks).hooks;
+  assert.deepEqual(Object.keys(hooks).sort(), ['PostToolUse', 'PostToolUseFailure']);
+  assert.equal(hooks.PostToolUseFailure[0].matcher, 'Bash|PowerShell');
+  assert.equal(hooks.PostToolUse[0].matcher, 'Bash|PowerShell|Edit|MultiEdit|Write|NotebookEdit');
+  for (const [entry] of Object.values(hooks)) {
+    assert.equal(entry.hooks[0].command, 'node "${CLAUDE_PLUGIN_ROOT}/guard-fail-loop.mjs"');
+  }
+  assert.ok(existsSync(join(root, source, 'guard-fail-loop.mjs')));
 });
 
 test('the cost band plugin loads its hooks module and declares its state', () => {
