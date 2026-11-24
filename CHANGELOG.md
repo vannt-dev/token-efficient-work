@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.8.0...v0.9.0) (2026-11-24)
+
+
+### Features
+
+* learn.mjs lists failed commands and the variant that worked ([#50](https://github.com/vannt-dev/token-efficient-work/issues/50)) ([4383f18](https://github.com/vannt-dev/token-efficient-work/commit/4383f1847e28172a246fb6fa9d77fdef484cba9d))
+
 ## [0.8.0](https://github.com/vannt-dev/token-efficient-work/compare/v0.7.1...v0.8.0) (2026-11-24)
 
 
