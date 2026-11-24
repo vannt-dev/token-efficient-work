@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
@@ -45,7 +45,8 @@ const pairs = (args = []) => JSON.parse(learn(['--json', ...args])).pairs;
 const find = (list, failed) => list.find((pair) => pair.failed === failed);
 
 before(() => {
-  root = mkdtempSync(join(tmpdir(), 'tew-learn-'));
+  // The long form of the path, as the script's process.cwd() gives it (not a Windows 8.3 name).
+  root = realpathSync.native(mkdtempSync(join(tmpdir(), 'tew-learn-')));
   dir = join(root, 'projects');
   project = join(root, 'repo');
   mkdirSync(project);
@@ -75,11 +76,14 @@ before(() => {
       // A secret in the command.
       fail(`GITHUB_TOKEN=${SECRET} gh release list`),
       bash(`GITHUB_TOKEN=${SECRET} gh release list -R owner/repo`),
+      // Keyed on `git push origin`, which works with other arguments in s4.
+      fail(`git push origin feat-${session}`, 'Exit code 1\n! [rejected]'),
+      bash(`git push --force origin feat-${session}`),
     ]);
   }
   // A subagent of s1 repeats the fix: still one session.
   transcript(folder, join('s1', 'subagents', 'agent-x.jsonl'), [fail('npm test'), bash('npm run test:unit')]);
-  transcript(folder, 's4.jsonl', [fail('npm test'), bash('npm run test:unit'), bash('go test', 'ok')]);
+  transcript(folder, 's4.jsonl', [fail('npm test'), bash('npm run test:unit'), bash('go test', 'ok'), bash('git push origin main')]);
   transcript(folder, 's5.jsonl', [fail('npm test', 'Exit code 1', { timestamp: old }), bash('npm run test:unit', 'ok', { timestamp: old })]);
   // Another project's sessions are left out unless --project names it.
   for (const session of ['o1', 'o2', 'o3']) transcript('other-project', `${session}.jsonl`, [fail('yarn test'), bash('yarn run test')]);
@@ -120,6 +124,10 @@ test('a failing form that also worked as written is listed but not written', () 
   assert.equal(go.worked, 'go test ./...');
   assert.equal(go.workedAsWritten, 1);
   assert.equal(go.written, false);
+  const push = find(pairs(), 'git push origin');
+  assert.equal(push.worked, 'git push --force origin');
+  assert.equal(push.workedAsWritten, 1);
+  assert.equal(push.written, false);
 });
 
 test('redacts secrets in what it prints and never writes a rule that held one', () => {
@@ -142,6 +150,11 @@ test('redacts the common shapes of a secret and leaves ordinary words alone', ()
     [`deploy ${'sk-' + 'a1'.repeat(12)}`, 'deploy [REDACTED]'],
     ['aws s3 ls AKIAABCDEFGHIJKLMNOP', 'ls [REDACTED]'],
     [`run ${'Zx9'.repeat(15)}`, 'run [REDACTED]'],
+    ['curl -u admin:hunter22 https://x', '-u [REDACTED] https'],
+    ['curl -H "X-Api-Key: v123" https://x', '"X-Api-Key: [REDACTED]"'],
+    ['curl -H "Authorization: rawvalue1" https://x', '"Authorization: [REDACTED]"'],
+    [`curl -d '{"password":"v1","user":"me"}' https://x`, '"password":[REDACTED],"user":"me"'],
+    ['DB_PASS=v1 MYSQL_PWD=v2 ./run', 'DB_PASS=[REDACTED] MYSQL_PWD=[REDACTED] ./run'],
   ];
   for (const [command, expected] of cases) assert.ok(redact(command).includes(expected), `${command} -> ${redact(command)}`);
   for (const plain of ['git log --author=me', 'npm token list', 'cat src/a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p1.ts']) {
@@ -175,13 +188,14 @@ test('--write keeps one managed block, updates it in place and leaves the rest o
   assert.ok(second.endsWith('Text after the block.\r\n'), second);
 });
 
-test('--write removes the block when nothing is learned any more', () => {
-  const file = join(root, 'stale.md');
+test('--write leaves the block alone when a run learns nothing', () => {
+  const file = join(root, 'kept.md');
   writeFileSync(file, '# Notes\n');
   learn(['--write', '--file', file]);
-  assert.match(readFileSync(file, 'utf8'), /tew-learn:start/);
-  learn(['--write', '--file', file, '--min-sessions', '9']);
-  assert.equal(readFileSync(file, 'utf8'), '# Notes\n');
+  const written = readFileSync(file, 'utf8');
+  assert.match(written, /tew-learn:start/);
+  assert.match(learn(['--write', '--file', file, '--min-sessions', '9']), /Nothing to write/);
+  assert.equal(readFileSync(file, 'utf8'), written);
 });
 
 test('the sample in tests/fixtures/learn gives what the README shows', () => {

@@ -17,18 +17,20 @@
 // Denials by a permission rule or the user, and the harness's own tool errors, are not failures;
 // a hook's refusal is. The first call that works ends the search, and so does an unchanged retry.
 // A pair counts once per session (a session's subagents are part of it) and is listed when it was
-// seen in --min-sessions sessions (default 3). It is not written when the failing form also
-// worked, unchanged, in some session: then the failure was something else, not the command.
+// seen in --min-sessions sessions (default 3). It is not written when the failing form also worked
+// in some session, as written or with more after it (`pytest -q` for `pytest`): then the failure
+// was something else, not the command. A run that learns nothing leaves the file alone.
 //
 // Secrets are redacted before anything is compared, printed or written: key prefixes such as
-// ghp_ or sk-, Bearer values, passwords in URLs, secret-named variables and --token-like options.
-// A rule that held a redacted value is listed but never written. No model call is made.
+// ghp_ or sk-, Bearer and header values, passwords in URLs and JSON, `curl -u` credentials,
+// secret-named variables and --token-like options. A rule that held a redacted value is listed but
+// never written. No model call is made.
 
-import { createReadStream, existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { createInterface } from 'node:readline';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 const SHELL_TOOLS = new Set(['Bash', 'PowerShell']);
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit']);
@@ -70,9 +72,16 @@ const SECRET_PATTERNS = [
   [/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/g, REDACTED],
   [/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{8,}/gi, `$1 ${REDACTED}`],
   [/(:\/\/)[^\s/@:'"]+:[^\s/@'"]+@/g, `$1${REDACTED}@`],
+  // curl -u user:password
+  [/((?:^|\s)(?:-u|--user)\s+)(["']?)[^\s'":]*:[^\s'"]+\2/g, `$1$2${REDACTED}$2`],
+  // Header and JSON values: "X-Api-Key: v", "Authorization: v", {"password": "v"}.
+  [
+    /(["']?\b(authorization|[\w-]*(api[-_]?key|token|secret|password|passwd))["']?\s*:\s*)(?!(Bearer|Basic)\s)("[^"]*"|'[^']*'|[^\s"',}]+)/gi,
+    `$1${REDACTED}`,
+  ],
   // NAME=value, $env:NAME = "value" and --name value / --name=value for secret-looking names.
   [
-    /(\b[A-Za-z_]*(TOKEN|SECRET|PASSWORD|PASSWD|API_?KEY|CREDENTIALS?|PRIVATE_KEY)[A-Za-z_]*\s*=\s*)("[^"]*"|'[^']*'|[^\s;&|]+)/gi,
+    /(\b[A-Za-z_]*(TOKEN|SECRET|PASSWORD|PASSWD|PASS|PWD|API_?KEY|CREDENTIALS?|PRIVATE_KEY)[A-Za-z_]*\s*=\s*)("[^"]*"|'[^']*'|[^\s;&|]+)/gi,
     `$1${REDACTED}`,
   ],
   [
@@ -331,7 +340,6 @@ function commandChange(failedCommand, workedCommand) {
   return {
     failed: x.slice(0, x.length - suffix).join(' '),
     worked: y.slice(0, y.length - suffix).join(' '),
-    failedSegment: x.join(' '),
   };
 }
 
@@ -371,7 +379,7 @@ function findPairs(calls, since) {
         const to = shownPath(next.file, next.cwd);
         if (from.toLowerCase() === to.toLowerCase()) break;
         if (next.result === 'ok' && baseName(from) === baseName(to)) {
-          pairs.push({ kind: 'path', failed: from, worked: to, failedSegment: from.toLowerCase(), example: { failed: from, worked: to } });
+          pairs.push({ kind: 'path', failed: from, worked: to, example: { failed: from, worked: to } });
         }
         if (next.result === 'ok') break;
       }
@@ -390,23 +398,32 @@ const writable = (pair) =>
   pair.workedAsWritten === 0 &&
   ![pair.failed, pair.worked].some((text) => text.includes(REDACTED) || text.includes('`') || text.length > MAX_RULE_LENGTH);
 
-/** The file's text with the managed block set to these rules: replaced in place, added, or removed. */
-export function withBlock(text, rules) {
+const startsWith = (words, key) => words === key || words.startsWith(`${key} `);
+
+/**
+ * Sessions where the failing form worked as written: the same path, or a command whose words start
+ * with the failed form and not with the working one (`pytest -q` worked, so `pytest` is not broken).
+ */
+function workedAsWritten(group, workedIn) {
+  const sessions = new Set();
+  for (const [key, where] of workedIn) {
+    const words = key.slice(key.indexOf(':') + 1);
+    const contradicts =
+      group.kind === 'path'
+        ? key.startsWith('path:') && words === group.failed.toLowerCase()
+        : key.startsWith('command:') && startsWith(words, group.failed) && !startsWith(words, group.worked);
+    if (contradicts) for (const session of where) sessions.add(session);
+  }
+  return sessions;
+}
+
+/** The file's text with the managed block set to these rules: replaced in place, or added at the end. */
+function withBlock(text, rules) {
   const eol = text.includes('\r\n') ? '\r\n' : '\n';
-  const block = rules.length
-    ? [START, '## Learned from past sessions', '', 'In this project:', ...rules.map((rule) => `- ${rule}`), END].join(eol)
-    : '';
+  const block = [START, '## Learned from past sessions', '', 'In this project:', ...rules.map((rule) => `- ${rule}`), END].join(eol);
   const start = text.indexOf(START);
   const end = start === -1 ? -1 : text.indexOf(END, start);
-  if (start !== -1 && end !== -1) {
-    let after = text.slice(end + END.length);
-    if (!block) {
-      after = after.replace(/^\r?\n/, '');
-      return text.slice(0, start).replace(/(\r?\n){2,}$/, eol) + after;
-    }
-    return text.slice(0, start) + block + after;
-  }
-  if (!block) return text;
+  if (start !== -1 && end !== -1) return text.slice(0, start) + block + text.slice(end + END.length);
   if (!text) return block + eol;
   const separator = text.endsWith(eol + eol) ? '' : text.endsWith(eol) ? eol : eol + eol;
   return text + separator + block + eol;
@@ -467,29 +484,24 @@ async function main() {
     }
     for (const pair of pairs) {
       const key = `${pair.kind}\0${pair.failed}\0${pair.worked}`;
-      if (!grouped.has(key)) grouped.set(key, { ...pair, sessionSet: new Set(), failedSegments: new Set(), times: 0 });
+      if (!grouped.has(key)) grouped.set(key, { ...pair, sessionSet: new Set(), times: 0 });
       const group = grouped.get(key);
       group.sessionSet.add(session);
-      group.failedSegments.add(`${pair.kind}:${pair.failedSegment}`);
       group.times += 1;
     }
   }
   const pairs = [...grouped.values()]
-    .map((group) => {
-      const workedSessions = new Set();
-      for (const segment of group.failedSegments) for (const session of workedIn.get(segment) ?? []) workedSessions.add(session);
-      const pair = {
-        kind: group.kind,
-        failed: group.failed,
-        worked: group.worked,
-        sessions: group.sessionSet.size,
-        times: group.times,
-        workedAsWritten: workedSessions.size,
-        example: group.example,
-      };
-      return { ...pair, written: false };
-    })
-    .filter((pair) => pair.sessions >= options.minSessions)
+    .filter((group) => group.sessionSet.size >= options.minSessions)
+    .map((group) => ({
+      kind: group.kind,
+      failed: group.failed,
+      worked: group.worked,
+      sessions: group.sessionSet.size,
+      times: group.times,
+      workedAsWritten: workedAsWritten(group, workedIn).size,
+      example: group.example,
+      written: false,
+    }))
     .sort((a, b) => b.sessions - a.sessions || b.times - a.times || a.failed.localeCompare(b.failed) || a.worked.localeCompare(b.worked));
   const rules = [];
   for (const pair of pairs) {
@@ -507,6 +519,10 @@ async function main() {
   };
   console.log(options.json ? JSON.stringify(result, null, 2) : render(result, options));
   if (!options.write) return;
+  if (!rules.length) {
+    if (!options.json) console.log(`\nNothing to write; ${options.file} is left as it is.`);
+    return;
+  }
   const before = existsSync(options.file) ? readFileSync(options.file, 'utf8') : '';
   const after = withBlock(before, rules);
   if (after === before) {
@@ -514,11 +530,18 @@ async function main() {
     return;
   }
   writeFileSync(options.file, after);
-  if (!options.json) console.log(`\n${options.file}: ${rules.length ? `${rules.length} rule${rules.length === 1 ? '' : 's'} written` : 'learned block removed'}.`);
+  if (!options.json) console.log(`\n${options.file}: ${rules.length} rule${rules.length === 1 ? '' : 's'} written.`);
 }
 
-// Run as a script; imported (by the tests), it only exports redact() and withBlock().
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+// Run as a script; imported (by the tests), it only exports redact().
+const samePath = (a, b) => {
+  try {
+    return realpathSync.native(a).toLowerCase() === realpathSync.native(b).toLowerCase();
+  } catch {
+    return false;
+  }
+};
+if (process.argv[1] && samePath(process.argv[1], fileURLToPath(import.meta.url))) {
   main().catch((error) => {
     console.error(error.message);
     process.exit(1);

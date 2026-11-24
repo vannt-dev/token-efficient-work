@@ -337,8 +337,10 @@ In this project:
 ```
 
 Each run replaces that block in place and leaves the rest of the file
-alone; a run that finds nothing removes the block. `CLAUDE.local.md` is
-your own file, so keep it out of git. `--file PATH` writes somewhere else.
+alone. A run that learns nothing (no pair, or no transcripts left on
+disk for the project) does not touch the file; delete the block by hand
+to drop it. `CLAUDE.local.md` is your own file, so keep it out of git.
+`--file PATH` writes somewhere else.
 
 What counts as a pair:
 
@@ -356,13 +358,14 @@ What counts as a pair:
   permission rule or by you. A hook that refuses a command does count.
 
 A pair is counted once per session, subagents included. It is listed
-but not written when the failing form also worked, unchanged, in some
-session: then the failure came from something else, such as a failing
-test. Secrets are replaced with `[REDACTED]` before anything is
-compared or printed (key prefixes such as `ghp_` and `sk-`, Bearer
-values, passwords in URLs, variables and options named like a token,
-key or password), and a rule that held one is never written. No model
-is called.
+but not written when the failing form also worked in some session, as
+written or with more after it (`pytest -q` for `pytest`): then the
+failure came from something else, such as a failing test. Secrets are
+replaced with `[REDACTED]` before anything is compared or printed (key
+prefixes such as `ghp_` and `sk-`, Bearer and header values, passwords
+in URLs and JSON, `curl -u` credentials, variables and options named
+like a token, key or password), and a rule that held one is never
+written. No model is called.
 
 `--min-sessions N` changes the threshold, `--project TEXT` picks other
 projects by part of their transcript folder name, and `--days`,
